@@ -1,0 +1,51 @@
+from setuptools import find_packages, setup
+
+
+def read(f):
+    return open(f, "r", encoding="utf-8").read()
+
+
+setup(
+    name="drf-recaptcha",
+    version="1.0.0",
+    description="Django rest framework recaptcha field serializer.",
+    long_description=read("README.md"),
+    long_description_content_type="text/markdown",
+    author="Lev Lybin",
+    author_email="lev.lybin@gmail.com",
+    license="MIT",
+    url="https://github.com/llybin/drf-recaptcha",
+    packages=find_packages(exclude=["tests*"]),
+    install_requires=[
+        "django>2.0,<4.0",
+        "djangorestframework>=3.10,<4.0",
+        "django-ipware>=2.1.0,<3.0",
+    ],
+    python_requires=">=3.5",
+    include_package_data=True,
+    zip_safe=False,
+    keywords=[
+        "django",
+        "drf",
+        "django-rest-framework",
+        "reCAPTCHA",
+        "reCAPTCHA v2",
+        "reCAPTCHA v3",
+    ],
+    classifiers=[
+        "Framework :: Django :: 2.2",
+        "Framework :: Django :: 2.1",
+        "Framework :: Django :: 2.0",
+        "Framework :: Django",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+    ],
+)
