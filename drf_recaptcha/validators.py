@@ -37,9 +37,9 @@ class ReCaptchaValidator:
         try:
             self.recaptcha_client_ip = get_client_ip(request)
         except AttributeError:
-            is_testing = getattr(settings, "DRF_RECAPTCHA_TESTING", False)
-            if not is_testing:
-                logger.exception("Couldn't get client ip address")
+            logger.exception(
+                "Couldn't get client ip address. Check your serializer gets context with request."
+            )
 
     def get_response(self, value: str) -> client.RecaptchaResponse:
         try:
