@@ -21,8 +21,12 @@ class ReCaptchaV3Field(CharField):
 
         self.write_only = True
 
-        required_score = required_score or getattr(
-            settings, "DRF_RECAPTCHA_DEFAULT_V3_SCORE", DEFAULT_V3_SCORE
+        scores_from_settings = getattr(settings, "DRF_RECAPTCHA_ACTION_V3_SCORES", {})
+
+        required_score = (
+            required_score
+            or getattr(scores_from_settings, action, None)
+            or getattr(settings, "DRF_RECAPTCHA_DEFAULT_V3_SCORE", DEFAULT_V3_SCORE)
         )
 
         validator = ReCaptchaV3Validator(

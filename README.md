@@ -62,11 +62,20 @@ class V3WithScoreSerializer(Serializer):
 
 `DRF_RECAPTCHA_DEFAULT_V3_SCORE` - by default: `0.5`
 
+`DRF_RECAPTCHA_ACTION_V3_SCORES` - by default: `{}`, you can define specific score for each action e.g. `{"login": 0.6, "feedback": 0.3"}`
+
 `DRF_RECAPTCHA_DOMAIN` - by default: `www.google.com`
 
 `DRF_RECAPTCHA_PROXY` - by default: `{}` e.g. `{'http': 'http://127.0.0.1:8000', 'https': 'https://127.0.0.1:8000'}`
 
 `DRF_RECAPTCHA_VERIFY_REQUEST_TIMEOUT` - by default: `10`
+
+# Priority of score value
+
+1. Value in argument `required_score` of field, if not defined then
+2. Value for action in settings `DRF_RECAPTCHA_ACTION_V3_SCORES`, if not defined then
+3. Default value in settings `DRF_RECAPTCHA_DEFAULT_V3_SCORE`, if not defined then
+4. Default value 0.5
 
 # Testing
 
