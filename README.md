@@ -12,16 +12,17 @@
 ## Requirements
 
 Tested with:
-* Python: 3.7, 3.8
-* Django: 2.2
-* Django REST framework: 3.10
+
+*   Python: 3.7, 3.8
+*   Django: 2.2
+*   Django REST framework: 3.10
 
 ## Installation
 
-1. [Sign up for reCAPTCHA](https://www.google.com/recaptcha/)
-2. Install with `pip install drf-recaptcha`
-3. Add `"drf_recaptcha"` to your `INSTALLED_APPS` settings.
-4. Set in settings `DRF_RECAPTCHA_SECRET_KEY`
+1.  [Sign up for reCAPTCHA](https://www.google.com/recaptcha/)
+2.  Install with `pip install drf-recaptcha`
+3.  Add `"drf_recaptcha"` to your `INSTALLED_APPS` settings.
+4.  Set in settings `DRF_RECAPTCHA_SECRET_KEY`
 
 ```python
 INSTALLED_APPS = [
