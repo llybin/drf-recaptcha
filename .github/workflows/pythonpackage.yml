@@ -9,8 +9,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.6, 3.7, 3.8]
+        python-version: [3.5, 3.6, 3.7, 3.8]
         django-version: [2.0, 2.1, 2.2, 3.0]
+        exclude:
+          # Python 3.5 is compatible with Django <3.0
+          - python-version: "3.5"
+            django-version: "3.0"
+          # Python 3.8 is compatible with Django 2.2+
+          - python-version: "3.8"
+            django-version: "2.0"
+          - python-version: "3.8"
+            django-version: "2.1"
 
     steps:
     - uses: actions/checkout@v1
