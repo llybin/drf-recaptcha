@@ -23,6 +23,7 @@ jobs:
         pip install -e .
     - name: Test with pytest
       run: |
+        pip install coverage
         coverage run ./setup.py test
         coverage report
         coverage xml

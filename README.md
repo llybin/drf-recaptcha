@@ -9,23 +9,19 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 ![PyPI - License](https://img.shields.io/pypi/l/drf-recaptcha)
 
-# Requirements
+## Requirements
 
 Tested with:
+  * Python: 3.7, 3.8
+  * Django: 2.2
+  * Django REST framework: 3.10
 
-* Python: 3.7, 3.8
-* Django: 2.2
-* Django REST framework: 3.10
+## Installation
 
-# Installation
-
-1. [Sign up for reCAPTCHA](https://www.google.com/recaptcha/)
-
-2. Install with `pip install drf-recaptcha`
-
-3. Add `"drf_recaptcha"` to your `INSTALLED_APPS` settings.
-
-4. Set in settings `DRF_RECAPTCHA_SECRET_KEY`
+ 1. [Sign up for reCAPTCHA](https://www.google.com/recaptcha/)
+ 2. Install with `pip install drf-recaptcha`
+ 3. Add `"drf_recaptcha"` to your `INSTALLED_APPS` settings.
+ 4. Set in settings `DRF_RECAPTCHA_SECRET_KEY`
 
 ```python
 INSTALLED_APPS = [
@@ -39,7 +35,7 @@ INSTALLED_APPS = [
 DRF_RECAPTCHA_SECRET_KEY = "YOUR SECRET KEY"
 ```
 
-# Usage
+## Usage
 
 ```python
 from rest_framework.serializers import Serializer
@@ -61,7 +57,7 @@ class V3WithScoreSerializer(Serializer):
     ...
 ```
 
-# Settings
+## Settings
 
 `DRF_RECAPTCHA_SECRET_KEY` - must be set.
 
@@ -75,18 +71,18 @@ class V3WithScoreSerializer(Serializer):
 
 `DRF_RECAPTCHA_VERIFY_REQUEST_TIMEOUT` - by default: `10`
 
-# reCAPTCHA v3
+## reCAPTCHA v3
 
 Validation is passed if the score value returned by Google is greater than or equal to required score.
 
-## Priority of score value
+### Priority of score value
 
-1. Value in argument `required_score` of field, if not defined then
-2. Value for action in settings `DRF_RECAPTCHA_ACTION_V3_SCORES`, if not defined then
-3. Default value in settings `DRF_RECAPTCHA_DEFAULT_V3_SCORE`, if not defined then
-4. Default value `0.5`
+ 1. Value in argument `required_score` of field, if not defined then
+ 2. Value for action in settings `DRF_RECAPTCHA_ACTION_V3_SCORES`, if not defined then
+ 3. Default value in settings `DRF_RECAPTCHA_DEFAULT_V3_SCORE`, if not defined then
+ 4. Default value `0.5`
 
-# Testing
+## Testing
 
 Set `DRF_RECAPTCHA_TESTING=True` in settings, no request to Google, no warnings, `DRF_RECAPTCHA_SECRET_KEY` is not required, set returning verification result in setting below.
 
@@ -94,7 +90,7 @@ Set `DRF_RECAPTCHA_TESTING=True` in settings, no request to Google, no warnings,
 
 Use `from django.test import override_settings`
 
-# Credits
+## Credits
 
 [timeforimage.ru](https://timeforimage.ru) 
 
