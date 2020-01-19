@@ -7,7 +7,7 @@ def read(f):
 
 setup(
     name="drf-recaptcha",
-    version="1.3.1",
+    version="1.4.0",
     description="Django rest framework recaptcha field serializer.",
     long_description=read("README.md"),
     long_description_content_type="text/markdown",

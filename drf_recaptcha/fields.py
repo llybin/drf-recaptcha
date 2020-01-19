@@ -23,15 +23,19 @@ class ReCaptchaV3Field(CharField):
 
         scores_from_settings = getattr(settings, "DRF_RECAPTCHA_ACTION_V3_SCORES", {})
 
-        required_score = (
+        self.required_score = (
             required_score
-            or getattr(scores_from_settings, action, None)
-            or getattr(settings, "DRF_RECAPTCHA_DEFAULT_V3_SCORE", DEFAULT_V3_SCORE)
+            or (
+                isinstance(scores_from_settings, dict)
+                and scores_from_settings.get(action, None)
+            )
+            or getattr(settings, "DRF_RECAPTCHA_DEFAULT_V3_SCORE", None)
+            or DEFAULT_V3_SCORE
         )
 
         validator = ReCaptchaV3Validator(
             action=action,
-            required_score=required_score,
+            required_score=self.required_score,
             secret_key=settings.DRF_RECAPTCHA_SECRET_KEY,
         )
         self.validators.append(validator)

@@ -70,11 +70,15 @@ class V3WithScoreSerializer(Serializer):
 
 Validation is passed if the score value returned by Google is greater than or equal to required score.
 
+Required score value: 0.0 - 1.0
+
 ### Priority of score value
 
-1.  Value in argument `required_score` of field, if not defined then
-2.  Value for action in settings `DRF_RECAPTCHA_ACTION_V3_SCORES`, if not defined then
-3.  Default value in settings `DRF_RECAPTCHA_DEFAULT_V3_SCORE`, if not defined then
+If not defined or zero in current item then value from next item.
+
+1.  Value in argument `required_score` of field
+2.  Value for action in settings `DRF_RECAPTCHA_ACTION_V3_SCORES`
+3.  Default value in settings `DRF_RECAPTCHA_DEFAULT_V3_SCORE`
 4.  Default value `0.5`
 
 ## Testing
