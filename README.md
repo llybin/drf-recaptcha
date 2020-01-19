@@ -70,12 +70,16 @@ class V3WithScoreSerializer(Serializer):
 
 `DRF_RECAPTCHA_VERIFY_REQUEST_TIMEOUT` - by default: `10`
 
-# Priority of score value
+# reCAPTCHA v3
+
+Validation is passed if the score value returned by Google is greater than or equal to required score.
+
+## Priority of score value
 
 1. Value in argument `required_score` of field, if not defined then
 2. Value for action in settings `DRF_RECAPTCHA_ACTION_V3_SCORES`, if not defined then
 3. Default value in settings `DRF_RECAPTCHA_DEFAULT_V3_SCORE`, if not defined then
-4. Default value 0.5
+4. Default value `0.5`
 
 # Testing
 
