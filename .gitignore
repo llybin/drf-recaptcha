@@ -13,4 +13,7 @@
 MANIFEST
 coverage.*
 
+!.coveragerc
+!.editorconfig
 !.gitignore
+!.github
