@@ -21,18 +21,16 @@ class ReCaptchaValidator:
     recaptcha_client_ip = ""
     recaptcha_secret_key = ""
 
-    def is_testing_and_pass(self) -> bool:
-        is_testing = getattr(settings, "DRF_RECAPTCHA_TESTING", False)
-        if is_testing:
-            testing_result = getattr(settings, "DRF_RECAPTCHA_TESTING_PASS", True)
-            if not testing_result:
-                raise ValidationError(
-                    self.messages["captcha_invalid"], code="captcha_invalid"
-                )
-            else:
-                return True
+    @staticmethod
+    def is_testing() -> bool:
+        return getattr(settings, "DRF_RECAPTCHA_TESTING", False)
 
-        return False
+    def testing_validation(self):
+        testing_result = getattr(settings, "DRF_RECAPTCHA_TESTING_PASS", True)
+        if not testing_result:
+            raise ValidationError(
+                self.messages["captcha_invalid"], code="captcha_invalid"
+            )
 
     def set_context(self, serializer_field):
         request = serializer_field.context.get("request")
@@ -41,7 +39,7 @@ class ReCaptchaValidator:
                 "Couldn't get client ip address. Check your serializer gets context with request."
             )
 
-        self.recaptcha_client_ip = get_client_ip(request)
+        self.recaptcha_client_ip, _ = get_client_ip(request)
 
     def get_response(self, value: str) -> client.RecaptchaResponse:
         try:
@@ -54,6 +52,9 @@ class ReCaptchaValidator:
             logger.exception("Couldn't get response, HTTPError")
             raise ValidationError(self.messages["captcha_error"], code="captcha_error")
 
+        return check_captcha
+
+    def pre_validate_response(self, check_captcha: client.RecaptchaResponse):
         if not check_captcha.is_valid:
             logger.error(
                 "ReCAPTCHA validation failed due to: %s", check_captcha.error_codes
@@ -61,8 +62,6 @@ class ReCaptchaValidator:
             raise ValidationError(
                 self.messages["captcha_invalid"], code="captcha_invalid"
             )
-
-        return check_captcha
 
 
 class ReCaptchaV2Validator(ReCaptchaValidator):
@@ -74,10 +73,13 @@ class ReCaptchaV2Validator(ReCaptchaValidator):
         if serializer_field and not self.recaptcha_client_ip:
             self.set_context(serializer_field)
 
-        if self.is_testing_and_pass():
+        if self.is_testing():
+            self.testing_validation()
             return
 
         check_captcha = self.get_response(value)
+
+        self.pre_validate_response(check_captcha)
 
         score = check_captcha.extra_data.get("score", None)
         if score is not None:
@@ -99,10 +101,13 @@ class ReCaptchaV3Validator(ReCaptchaValidator):
         if serializer_field and not self.recaptcha_client_ip:
             self.set_context(serializer_field)
 
-        if self.is_testing_and_pass():
+        if self.is_testing():
+            self.testing_validation()
             return
 
         check_captcha = self.get_response(value)
+
+        self.pre_validate_response(check_captcha)
 
         score = check_captcha.extra_data.get("score", None)
         if score is None:
