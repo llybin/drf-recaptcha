@@ -2,6 +2,7 @@ import logging
 from urllib.error import HTTPError
 
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from ipware import get_client_ip
 from rest_framework.serializers import ValidationError
 
@@ -11,6 +12,8 @@ logger = logging.getLogger(__name__)
 
 
 class ReCaptchaValidator:
+    requires_context = True
+
     messages = {
         "captcha_invalid": "Error verifying reCAPTCHA, please try again.",
         "captcha_error": "Error verifying reCAPTCHA, please try again.",
@@ -31,15 +34,14 @@ class ReCaptchaValidator:
 
         return False
 
-    def set_context(self, serializer_field):
-        request = serializer_field.context.get("request")
-
-        try:
-            self.recaptcha_client_ip = get_client_ip(request)
-        except AttributeError:
-            logger.exception(
+    def set_client_ip(self, context):
+        request = context.get("request")
+        if not request:
+            raise ImproperlyConfigured(
                 "Couldn't get client ip address. Check your serializer gets context with request."
             )
+
+        self.recaptcha_client_ip = get_client_ip(request)
 
     def get_response(self, value: str) -> client.RecaptchaResponse:
         try:
@@ -67,7 +69,9 @@ class ReCaptchaV2Validator(ReCaptchaValidator):
     def __init__(self, secret_key):
         self.recaptcha_secret_key = secret_key
 
-    def __call__(self, value):
+    def __call__(self, value, serializer_field):
+        self.set_client_ip(serializer_field.context)
+
         if self.is_testing_and_pass():
             return
 
@@ -88,7 +92,9 @@ class ReCaptchaV3Validator(ReCaptchaValidator):
         self.recaptcha_required_score = required_score
         self.recaptcha_secret_key = secret_key
 
-    def __call__(self, value):
+    def __call__(self, value, serializer_field):
+        self.set_client_ip(serializer_field.context)
+
         if self.is_testing_and_pass():
             return
 
