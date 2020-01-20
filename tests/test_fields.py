@@ -51,8 +51,13 @@ def test_recaptcha_v3_field_score_priority(
     [(ReCaptchaV2Field, {}), (ReCaptchaV3Field, {"action": "test_action"})],
 )
 def test_serializer_requires_context(field_class, params):
+    class TestSerializer(Serializer):
+        token = field_class(**params)
+
+    serializer = TestSerializer(data={"token": "test_token"})
+
     with pytest.raises(ImproperlyConfigured) as exc_info:
-        field_class(**params).run_validators("test_token")
+        serializer.is_valid(raise_exception=True)
 
     assert (
         str(exc_info.value)

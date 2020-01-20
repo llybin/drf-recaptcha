@@ -35,8 +35,8 @@ class ReCaptchaValidator:
 
         return False
 
-    def set_client_ip(self, context):
-        request = context.get("request")
+    def set_context(self, serializer_field):
+        request = serializer_field.context.get("request")
         if not isinstance(request, WSGIRequest):
             raise ImproperlyConfigured(
                 "Couldn't get client ip address. Check your serializer gets context with request."
@@ -70,8 +70,10 @@ class ReCaptchaV2Validator(ReCaptchaValidator):
     def __init__(self, secret_key):
         self.recaptcha_secret_key = secret_key
 
-    def __call__(self, value, serializer_field):
-        self.set_client_ip(serializer_field.context)
+    def __call__(self, value, serializer_field=None):
+        # compatibility with drf < 3.11
+        if serializer_field and not self.recaptcha_client_ip:
+            self.set_context(serializer_field)
 
         if self.is_testing_and_pass():
             return
@@ -93,8 +95,10 @@ class ReCaptchaV3Validator(ReCaptchaValidator):
         self.recaptcha_required_score = required_score
         self.recaptcha_secret_key = secret_key
 
-    def __call__(self, value, serializer_field):
-        self.set_client_ip(serializer_field.context)
+    def __call__(self, value, serializer_field=None):
+        # compatibility with drf < 3.11
+        if serializer_field and not self.recaptcha_client_ip:
+            self.set_context(serializer_field)
 
         if self.is_testing_and_pass():
             return
