@@ -1,8 +1,9 @@
 import pytest
 from django.core.exceptions import ImproperlyConfigured
-from django.test import RequestFactory, override_settings
+from django.test import override_settings
 from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import Serializer
+from rest_framework.test import APIRequestFactory
 
 from drf_recaptcha.constants import TEST_V2_SECRET_KEY
 from drf_recaptcha.fields import ReCaptchaV2Field, ReCaptchaV3Field
@@ -72,7 +73,7 @@ def test_functional_v2():
 
     serializer = TestSerializer(
         data={"token": "test_token"},
-        context={"request": RequestFactory().get("/recaptcha")},
+        context={"request": APIRequestFactory().get("/recaptcha")},
     )
     assert serializer.is_valid() is True
 
@@ -84,7 +85,7 @@ def test_functional_v3():
 
     serializer = TestSerializer(
         data={"token": "test_token"},
-        context={"request": RequestFactory().get("/recaptcha")},
+        context={"request": APIRequestFactory().get("/recaptcha")},
     )
     with pytest.raises(ValidationError) as exc_info:
         serializer.is_valid(raise_exception=True)

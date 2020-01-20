@@ -60,7 +60,7 @@ class V3WithScoreSerializer(Serializer):
 
 `DRF_RECAPTCHA_DEFAULT_V3_SCORE` - by default: `0.5`
 
-`DRF_RECAPTCHA_ACTION_V3_SCORES` - by default: `{}`, you can define specific score for each action e.g. `{"login": 0.6, "feedback": 0.3"}`
+`DRF_RECAPTCHA_ACTION_V3_SCORES` - by default: `{}`, you can define specific score for each action e.g. `{"login": 0.6, "feedback": 0.3}`
 
 `DRF_RECAPTCHA_DOMAIN` - by default: `www.google.com`
 

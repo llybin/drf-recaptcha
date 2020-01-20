@@ -3,7 +3,6 @@ from urllib.error import HTTPError
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-from django.core.handlers.wsgi import WSGIRequest
 from ipware import get_client_ip
 from rest_framework.serializers import ValidationError
 
@@ -37,7 +36,7 @@ class ReCaptchaValidator:
 
     def set_context(self, serializer_field):
         request = serializer_field.context.get("request")
-        if not isinstance(request, WSGIRequest):
+        if not request:
             raise ImproperlyConfigured(
                 "Couldn't get client ip address. Check your serializer gets context with request."
             )
