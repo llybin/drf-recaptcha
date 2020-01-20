@@ -9,8 +9,9 @@
 [![PyPI](https://img.shields.io/pypi/v/drf-recaptcha)](https://pypi.org/project/drf-recaptcha/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/drf-recaptcha)](https://pypi.org/project/drf-recaptcha/)
 [![PyPI - License](https://img.shields.io/pypi/l/drf-recaptcha)](https://pypi.org/project/drf-recaptcha/)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/drf-recaptcha)](https://pypi.org/project/drf-recaptcha/)
-[![PyPI - Django Version](https://img.shields.io/pypi/djversions/drf-recaptcha)](https://pypi.org/project/drf-recaptcha/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/drf-recaptcha)](https://github.com/llybin/drf-recaptcha/actions)
+[![PyPI - Django Version](https://img.shields.io/pypi/djversions/drf-recaptcha)](https://github.com/llybin/drf-recaptcha/actions)
+[![PyPI - Django Version](https://img.shields.io/badge/drf-3.9%20%7C%203.10%20%7C%203.11-blue)](https://github.com/llybin/drf-recaptcha/actions)
 
 ## Installation
 
