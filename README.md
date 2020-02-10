@@ -56,30 +56,30 @@ class V3WithScoreSerializer(Serializer):
 
 ## Settings
 
-`DRF_RECAPTCHA_SECRET_KEY` - must be set.
+`DRF_RECAPTCHA_SECRET_KEY` - set your Google reCAPTCHA secret key. Type: str.
 
-`DRF_RECAPTCHA_DEFAULT_V3_SCORE` - by default: `0.5`
+`DRF_RECAPTCHA_DEFAULT_V3_SCORE` - by default: `0.5`. Type: float.
 
-`DRF_RECAPTCHA_ACTION_V3_SCORES` - by default: `{}`, you can define specific score for each action e.g. `{"login": 0.6, "feedback": 0.3}`
+`DRF_RECAPTCHA_ACTION_V3_SCORES` - by default: `{}`. Type: dict. You can define specific score for each action e.g. `{"login": 0.6, "feedback": 0.3}`
 
-`DRF_RECAPTCHA_DOMAIN` - by default: `www.google.com`
+`DRF_RECAPTCHA_DOMAIN` - by default: `www.google.com`. Type: str.
 
-`DRF_RECAPTCHA_PROXY` - by default: `{}` e.g. `{'http': 'http://127.0.0.1:8000', 'https': 'https://127.0.0.1:8000'}`
+`DRF_RECAPTCHA_PROXY` - by default: `{}`. Type: dict. e.g. `{'http': 'http://127.0.0.1:8000', 'https': 'https://127.0.0.1:8000'}`
 
-`DRF_RECAPTCHA_VERIFY_REQUEST_TIMEOUT` - by default: `10`
+`DRF_RECAPTCHA_VERIFY_REQUEST_TIMEOUT` - by default: `10`. Type: int.
 
 ## reCAPTCHA v3
 
 Validation is passed if the score value returned by Google is greater than or equal to required score.
 
-Required score value: 0.0 - 1.0
+Required score value: `0.0 - 1.0`
 
 ### Priority of score value
 
 If not defined or zero in current item then value from next item.
 
-1.  Value in argument `required_score` of field
-2.  Value for action in settings `DRF_RECAPTCHA_ACTION_V3_SCORES`
+1.  Value for action in settings `DRF_RECAPTCHA_ACTION_V3_SCORES`
+2.  Value in argument `required_score` of field
 3.  Default value in settings `DRF_RECAPTCHA_DEFAULT_V3_SCORE`
 4.  Default value `0.5`
 
