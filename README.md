@@ -9,9 +9,12 @@
 [![PyPI](https://img.shields.io/pypi/v/drf-recaptcha)](https://pypi.org/project/drf-recaptcha/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/drf-recaptcha)](https://pypi.org/project/drf-recaptcha/)
 [![PyPI - License](https://img.shields.io/pypi/l/drf-recaptcha)](https://pypi.org/project/drf-recaptcha/)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/drf-recaptcha)](https://github.com/llybin/drf-recaptcha/actions)
-[![PyPI - Django Version](https://img.shields.io/pypi/djversions/drf-recaptcha)](https://github.com/llybin/drf-recaptcha/actions)
-[![DRF Version](https://img.shields.io/badge/drf-3.9%20%7C%203.10%20%7C%203.11-blue)](https://github.com/llybin/drf-recaptcha/actions)
+
+## Requirements
+
+*   Python: 3.6, 3.7, 3.8, 3.9
+*   Django: 2.0, 2.1, 2.2, 3.0
+*   DRF: 3.9, 3.10, 3.11
 
 ## Installation
 
@@ -92,8 +95,6 @@ Set `DRF_RECAPTCHA_TESTING=True` in settings, no request to Google, no warnings,
 Use `from django.test import override_settings`
 
 ## Credits
-
-[timeforimage.ru](https://timeforimage.ru) 
 
 [django-recaptcha](https://github.com/praekelt/django-recaptcha)
 

@@ -13,7 +13,7 @@ jobs:
         django-version: ["2.0", "2.1", "2.2", "3.0"]
         drf-version: ["3.9", "3.10", "3.11"]
         exclude:
-          # Python 3.8 is compatible with Django 2.2+
+          # python 3.8 is compatible with Django 2.2+
           - python-version: "3.8"
             django-version: "2.0"
           - python-version: "3.8"
