@@ -12,7 +12,7 @@
 
 ## Requirements
 
-*   Python: 3.6, 3.7, 3.8, 3.9
+*   Python: 3.6, 3.7, 3.8
 *   Django: 2.0, 2.1, 2.2, 3.0
 *   DRF: 3.9, 3.10, 3.11
 
@@ -38,8 +38,10 @@ DRF_RECAPTCHA_SECRET_KEY = "YOUR SECRET KEY"
 ## Usage
 
 ```python
-from rest_framework.serializers import Serializer
+from rest_framework.serializers import Serializer, ModelSerializer
 from drf_recaptcha.fields import ReCaptchaV2Field, ReCaptchaV3Field
+from feedback.models import Feedback
+
 
 class V2Serializer(Serializer):
     recaptcha = ReCaptchaV2Field()
@@ -55,6 +57,18 @@ class V3WithScoreSerializer(Serializer):
         required_score=0.6,
     )
     ...
+
+class FeedbackSerializer(ModelSerializer):
+    recaptcha = ReCaptchaV2Field()
+
+    class Meta:
+        model = Feedback
+        fields = ("phone", "full_name", "email", "comment", "recaptcha")
+
+    def validate(self, attrs):
+        attrs.pop("recaptcha")
+        ...
+        return attrs
 ```
 
 ## Settings
