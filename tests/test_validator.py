@@ -1,7 +1,6 @@
 from unittest import mock
 
 import pytest
-from django.test import override_settings
 from rest_framework.serializers import ValidationError
 
 from drf_recaptcha.client import RecaptchaResponse
@@ -122,8 +121,9 @@ def test_recaptcha_validator_call_fail(validator_class, params, response, error)
         (ReCaptchaV3Validator, {"action": "test_action", "required_score": 0.4}),
     ],
 )
-@override_settings(DRF_RECAPTCHA_TESTING=True)
-def test_recaptcha_validator_set_context(validator_class, params):
+def test_recaptcha_validator_set_context(validator_class, params, settings):
+    settings.DRF_RECAPTCHA_TESTING = True
+
     validator = validator_class(secret_key="TEST_SECRET_KEY", **params)
 
     assert validator.recaptcha_client_ip == ""

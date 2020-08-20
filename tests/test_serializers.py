@@ -1,6 +1,5 @@
 import pytest
 from django.core.exceptions import ImproperlyConfigured
-from django.test import override_settings
 from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import Serializer
 from rest_framework.test import APIRequestFactory
@@ -28,8 +27,9 @@ def test_serializer_requires_context(field_class, params):
     )
 
 
-@override_settings(DRF_RECAPTCHA_SECRET_KEY=TEST_V2_SECRET_KEY)
-def test_serializer_v2():
+def test_serializer_v2(settings):
+    settings.DRF_RECAPTCHA_SECRET_KEY = TEST_V2_SECRET_KEY
+
     class TestSerializer(Serializer):
         token = ReCaptchaV2Field()
 
@@ -40,8 +40,9 @@ def test_serializer_v2():
     assert serializer.is_valid() is True
 
 
-@override_settings(DRF_RECAPTCHA_SECRET_KEY=TEST_V2_SECRET_KEY)
-def test_serializer_v3():
+def test_serializer_v3(settings):
+    settings.DRF_RECAPTCHA_SECRET_KEY = TEST_V2_SECRET_KEY
+
     class TestSerializer(Serializer):
         token = ReCaptchaV3Field(action="test_action")
 
