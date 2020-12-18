@@ -5,6 +5,12 @@ from rest_framework.serializers import CharField
 from drf_recaptcha.constants import DEFAULT_V3_SCORE
 from drf_recaptcha.validators import ReCaptchaV2Validator, ReCaptchaV3Validator
 
+def get_secret_key(context: dict or None = None) -> str:
+    if type(settings.DRF_RECAPTCHA_SECRET_KEY) is str:
+        return settings.DRF_RECAPTCHA_SECRET_KEY
+
+    return settings.DRF_RECAPTCHA_SECRET_KEY(context)
+
 
 class ReCaptchaV2Field(CharField):
     def __init__(self, **kwargs):
@@ -12,7 +18,7 @@ class ReCaptchaV2Field(CharField):
 
         self.write_only = True
 
-        validator = ReCaptchaV2Validator(secret_key=settings.DRF_RECAPTCHA_SECRET_KEY)
+        validator = ReCaptchaV2Validator(secret_key=get_secret_key(self.context))
         self.validators.append(validator)
 
 
@@ -79,6 +85,6 @@ class ReCaptchaV3Field(CharField):
         validator = ReCaptchaV3Validator(
             action=action,
             required_score=self.required_score,
-            secret_key=settings.DRF_RECAPTCHA_SECRET_KEY,
+            secret_key=get_secret_key(self.context),
         )
         self.validators.append(validator)
