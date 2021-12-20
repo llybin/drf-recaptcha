@@ -7,7 +7,7 @@ def read(f):
 
 setup(
     name="drf-recaptcha",
-    version="2.0.6",
+    version="2.0.7",
     description="Django rest framework recaptcha field serializer.",
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
@@ -19,7 +19,7 @@ setup(
     install_requires=[
         "django>=2.2,<4.1",
         "djangorestframework>=3.9,<4.0",
-        "django-ipware>=2.1,<4.0",
+        "django-ipware>=2.1,<4.1",
     ],
     setup_requires=["pytest-runner"],
     tests_require=["pytest", "pytest-django", "pytest-cov"],
