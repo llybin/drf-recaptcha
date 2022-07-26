@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 
 def read(f):
-    return open(f, "r", encoding="utf-8").read()
+    return open(f, encoding="utf-8").read()
 
 
 setup(
