@@ -22,8 +22,8 @@ setup(
         "django-ipware>=2.1,<4.1",
     ],
     setup_requires=["pytest-runner"],
-    tests_require=["pytest", "pytest-django", "pytest-cov", "tomli<2.0;python_version=='3.6'"],
-    python_requires=">=3.6",
+    tests_require=["pytest", "pytest-django", "pytest-cov"],
+    python_requires=">=3.7",
     include_package_data=True,
     zip_safe=False,
     keywords=[
@@ -54,7 +54,6 @@ setup(
         "Programming Language :: Python",
         "Programming Language :: Python :: 3 :: Only",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
