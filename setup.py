@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 
 def read(f):
-    return open(f, "r", encoding="utf-8").read()
+    return open(f, encoding="utf-8").read()
 
 
 setup(
@@ -17,13 +17,13 @@ setup(
     url="https://github.com/llybin/drf-recaptcha",
     packages=find_packages(exclude=["tests*"]),
     install_requires=[
-        "django>=2.2,<4.1",
+        "django>=3.2,<4.1",
         "djangorestframework>=3.9,<4.0",
         "django-ipware>=2.1,<4.1",
     ],
     setup_requires=["pytest-runner"],
-    tests_require=["pytest", "pytest-django", "pytest-cov", "tomli<2.0;python_version=='3.6'"],
-    python_requires=">=3.6",
+    tests_require=["pytest", "pytest-django", "pytest-cov"],
+    python_requires=">=3.7",
     include_package_data=True,
     zip_safe=False,
     keywords=[
@@ -41,8 +41,6 @@ setup(
         "Environment :: Plugins",
         "Intended Audience :: Developers",
         "Framework :: Django",
-        "Framework :: Django :: 2.2",
-        "Framework :: Django :: 3.1",
         "Framework :: Django :: 3.2",
         "Framework :: Django :: 4.0",
         "Intended Audience :: Developers",
@@ -54,7 +52,6 @@ setup(
         "Programming Language :: Python",
         "Programming Language :: Python :: 3 :: Only",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
