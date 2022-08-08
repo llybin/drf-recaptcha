@@ -32,7 +32,7 @@ class ReCaptchaValidator:
                 self.messages["captcha_invalid"], code="captcha_invalid"
             )
 
-    def set_context(self, serializer_field):
+    def set_client_ip(self, serializer_field):
         request = serializer_field.context.get("request")
         if not request:
             raise ImproperlyConfigured(
@@ -69,9 +69,8 @@ class ReCaptchaV2Validator(ReCaptchaValidator):
         self.recaptcha_secret_key = secret_key
 
     def __call__(self, value, serializer_field=None):
-        # compatibility with drf < 3.11
         if serializer_field and not self.recaptcha_client_ip:
-            self.set_context(serializer_field)
+            self.set_client_ip(serializer_field)
 
         if self.is_testing():
             self.testing_validation()
@@ -97,9 +96,8 @@ class ReCaptchaV3Validator(ReCaptchaValidator):
         self.recaptcha_secret_key = secret_key
 
     def __call__(self, value, serializer_field=None):
-        # compatibility with drf < 3.11
         if serializer_field and not self.recaptcha_client_ip:
-            self.set_context(serializer_field)
+            self.set_client_ip(serializer_field)
 
         if self.is_testing():
             self.testing_validation()
