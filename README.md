@@ -64,6 +64,13 @@ class V3WithScoreSerializer(Serializer):
     )
     ...
 
+class GetRecaptchaScore(APIView):
+    def post(self, request):
+        serializer = V3WithScoreSerializer(data=request.data, context={"request": request})
+        serializer.is_valid()
+        score = serializer.fields['recaptcha'].validators[-1].score
+        ...
+
 class FeedbackSerializer(ModelSerializer):
     recaptcha = ReCaptchaV2Field()
 

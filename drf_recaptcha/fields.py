@@ -81,5 +81,4 @@ class ReCaptchaV3Field(CharField):
             required_score=self.required_score,
             secret_key=settings.DRF_RECAPTCHA_SECRET_KEY,
         )
-        self.score = validator.score
         self.validators.append(validator)
