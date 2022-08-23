@@ -94,6 +94,7 @@ class ReCaptchaV3Validator(ReCaptchaValidator):
         self.recaptcha_action = action
         self.recaptcha_required_score = required_score
         self.recaptcha_secret_key = secret_key
+        self.score = None
 
     def __call__(self, value, serializer_field=None):
         if serializer_field and not self.recaptcha_client_ip:
