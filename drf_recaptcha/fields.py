@@ -76,16 +76,16 @@ class ReCaptchaV3Field(CharField):
             or DEFAULT_V3_SCORE
         )
 
-        validator = ReCaptchaV3Validator(
+        self.__validator = ReCaptchaV3Validator(
             action=action,
             required_score=self.required_score,
             secret_key=settings.DRF_RECAPTCHA_SECRET_KEY,
         )
-        self.validators.append(validator)
+        self.validators.append(self.__validator)
 
     @property
     def score(self):
-        score = self.validators[-1].score
+        score = self.__validator.score
         if score is None:
             msg = (
                 'You must call must call the serializer `.is_valid()` method before '
