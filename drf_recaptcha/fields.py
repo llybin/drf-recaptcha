@@ -88,8 +88,8 @@ class ReCaptchaV3Field(CharField):
         score = self.__validator.score
         if score is None:
             msg = (
-                'You must call must call the serializer `.is_valid()` method before '
-                'attempting to access the `.score` property of this field.'
+                "You must call the serializer `.is_valid()` method before "
+                "attempting to access the `.score` property of this field."
             )
             raise AssertionError(msg)
         return score
