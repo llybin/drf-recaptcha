@@ -94,6 +94,7 @@ class ReCaptchaV3Validator(ReCaptchaValidator):
         self.recaptcha_action = action
         self.recaptcha_required_score = required_score
         self.recaptcha_secret_key = secret_key
+        self.score = None
 
     def __call__(self, value, serializer_field=None):
         if serializer_field and not self.recaptcha_client_ip:
@@ -107,8 +108,8 @@ class ReCaptchaV3Validator(ReCaptchaValidator):
 
         self.pre_validate_response(check_captcha)
 
-        score = check_captcha.extra_data.get("score", None)
-        if score is None:
+        self.score = check_captcha.extra_data.get("score", None)
+        if self.score is None:
             logger.error(
                 "The response not contains score, reCAPTCHA v3 response must"
                 " contains score, probably secret key for reCAPTCHA v2"
@@ -117,11 +118,11 @@ class ReCaptchaV3Validator(ReCaptchaValidator):
 
         action = check_captcha.extra_data.get("action", "")
 
-        if self.recaptcha_required_score >= float(score):
+        if self.recaptcha_required_score >= float(self.score):
             logger.error(
                 "ReCAPTCHA validation failed due to score of %s"
                 " being lower than the required amount for action '%s'.",
-                score,
+                self.score,
                 action,
             )
             raise ValidationError(
