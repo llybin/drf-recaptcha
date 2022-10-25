@@ -11,13 +11,14 @@ jobs:
       matrix:
         python-version: [ "3.7", "3.8", "3.9", "3.10" ]
         django-version: [ "3.2", "4.0", "4.1" ]
-        drf-version: [ "3.11", "3.12", "3.13" ]
+        drf-version: [ "3.11", "3.12", "3.13", "3.14" ]
         exclude:
-          # django-version 4+ is compatible with python 3.8+
-          - django-version: "4.0"
-            python-version: "3.7"
-          - django-version: "4.1"
-            python-version: "3.7"
+        # https://docs.djangoproject.com/en/dev/faq/install/#what-python-version-can-i-use-with-django
+        - django-version: "4.0"
+          python-version: "3.7"
+        - django-version: "4.1"
+          python-version: "3.7"
+        # https://www.django-rest-framework.org/community/release-notes/
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
