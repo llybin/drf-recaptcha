@@ -69,12 +69,12 @@ class ReCaptchaV2Validator(ReCaptchaValidator):
         self.recaptcha_secret_key = secret_key
 
     def __call__(self, value, serializer_field=None):
-        if serializer_field and not self.recaptcha_client_ip:
-            self.set_client_ip(serializer_field)
-
         if self.is_testing():
             self.testing_validation()
             return
+
+        if serializer_field and not self.recaptcha_client_ip:
+            self.set_client_ip(serializer_field)
 
         check_captcha = self.get_response(value)
 
