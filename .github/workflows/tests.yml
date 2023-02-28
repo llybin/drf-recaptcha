@@ -10,13 +10,15 @@ jobs:
       fail-fast: false
       matrix:
         python-version: [ "3.7", "3.8", "3.9", "3.10" ]
-        django-version: [ "3.2", "4.0", "4.1" ]
+        django-version: [ "3.2", "4.0", "4.1" , "4.2"]
         drf-version: [ "3.11", "3.12", "3.13", "3.14" ]
         exclude:
         # https://docs.djangoproject.com/en/dev/faq/install/#what-python-version-can-i-use-with-django
         - django-version: "4.0"
           python-version: "3.7"
         - django-version: "4.1"
+          python-version: "3.7"
+        - django-version: "4.2"
           python-version: "3.7"
         # https://www.django-rest-framework.org/community/release-notes/
     steps:

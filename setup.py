@@ -17,7 +17,7 @@ setup(
     url="https://github.com/llybin/drf-recaptcha",
     packages=find_packages(exclude=["tests*"]),
     install_requires=[
-        "django>=3.2,<4.2",
+        "django>=3.2,<4.3",
         "djangorestframework>=3.11,<4.0",
         "django-ipware>=2.1,<4.1",
     ],
@@ -44,6 +44,7 @@ setup(
         "Framework :: Django :: 3.2",
         "Framework :: Django :: 4.0",
         "Framework :: Django :: 4.1",
+        "Framework :: Django :: 4.2",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
