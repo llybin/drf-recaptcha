@@ -17,9 +17,9 @@ setup(
     url="https://github.com/llybin/drf-recaptcha",
     packages=find_packages(exclude=["tests*"]),
     install_requires=[
-        "django>=3.2,<4.2",
-        "djangorestframework>=3.11,<4.0",
-        "django-ipware>=2.1,<4.1",
+        "django>=3.2",
+        "djangorestframework>=3.11",
+        "django-ipware>=2.1",
     ],
     setup_requires=["pytest-runner"],
     tests_require=["pytest", "pytest-django", "pytest-cov"],
