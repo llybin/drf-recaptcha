@@ -21,6 +21,12 @@ jobs:
         - django-version: "4.2"
           python-version: "3.7"
         # https://www.django-rest-framework.org/community/release-notes/
+        - django-version: "4.2"
+          drf-version: "3.11"
+        - django-version: "4.2"
+          drf-version: "3.12"
+        - django-version: "4.2"
+          drf-version: "3.13"
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
