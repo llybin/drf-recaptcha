@@ -9,8 +9,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.7", "3.8", "3.9", "3.10" ]
-        django-version: [ "3.2", "4.0", "4.1" ]
+        python-version: [ "3.7", "3.8", "3.9", "3.10", "3.11" ]
+        django-version: [ "3.2", "4.0", "4.1", "4.2" ]
         drf-version: [ "3.11", "3.12", "3.13", "3.14" ]
         exclude:
         # https://docs.djangoproject.com/en/dev/faq/install/#what-python-version-can-i-use-with-django
@@ -18,11 +18,19 @@ jobs:
           python-version: "3.7"
         - django-version: "4.1"
           python-version: "3.7"
+        - django-version: "4.2"
+          python-version: "3.7"
         # https://www.django-rest-framework.org/community/release-notes/
+        - django-version: "4.2"
+          drf-version: "3.11"
+        - django-version: "4.2"
+          drf-version: "3.12"
+        - django-version: "4.2"
+          drf-version: "3.13"
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
