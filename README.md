@@ -82,6 +82,13 @@ class FeedbackSerializer(ModelSerializer):
         attrs.pop("recaptcha")
         ...
         return attrs
+
+    
+class ExampleWithCustomSecretKey(APIView):
+    def post(self, request):
+        serializer = V2Serializer(data=request.data, context={"request": request, "recaptcha_secret_key": "SPECIAL_FOR_MOBILE"})
+        serializer.is_valid(raise_exception=True)
+        ...
 ```
 
 ## Settings

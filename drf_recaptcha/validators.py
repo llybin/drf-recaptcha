@@ -7,6 +7,7 @@ from ipware import get_client_ip
 from rest_framework.serializers import ValidationError
 
 from drf_recaptcha import client
+from drf_recaptcha.client import RecaptchaResponse
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +19,29 @@ class ReCaptchaValidator:
         "captcha_invalid": "Error verifying reCAPTCHA, please try again.",
         "captcha_error": "Error verifying reCAPTCHA, please try again.",
     }
-    recaptcha_client_ip = ""
-    recaptcha_secret_key = ""
+    default_recaptcha_client_ip = ""
+    default_recaptcha_secret_key = ""
+
+    def __call__(self, value, serializer_field=None):
+        if self.is_testing():
+            self.testing_validation()
+            return
+
+        client_ip = self._get_client_ip_from_context_or_default(serializer_field)
+        recaptcha_secret_key = self._get_secret_key_from_context_or_default(serializer_field)
+
+        check_captcha = self.get_captcha_response_with_payload(
+            value=value,
+            secret_key=recaptcha_secret_key,
+            client_ip=client_ip,
+        )
+
+        self.pre_validate_response(check_captcha)
+
+        self.process_response(check_captcha)
+
+    def process_response(self, check_captcha_response):
+        ...
 
     @staticmethod
     def is_testing() -> bool:
@@ -32,21 +54,42 @@ class ReCaptchaValidator:
                 self.messages["captcha_invalid"], code="captcha_invalid"
             )
 
-    def set_client_ip(self, serializer_field):
+    def _get_secret_key_from_context_or_default(self, serializer_field=None) -> str:
+        if not serializer_field:
+            return self.default_recaptcha_secret_key
+
+        return serializer_field.context.get("recaptcha_secret_key", self.default_recaptcha_secret_key)
+
+    def _get_client_ip_from_context_or_default(self, serializer_field=None) -> str:
+        if serializer_field and not self.default_recaptcha_client_ip:
+            return self._get_client_ip_from_context(serializer_field)
+
+        return self.default_recaptcha_client_ip
+
+    @staticmethod
+    def _get_client_ip_from_context(serializer_field):
         request = serializer_field.context.get("request")
         if not request:
             raise ImproperlyConfigured(
                 "Couldn't get client ip address. Check your serializer gets context with request."
             )
 
-        self.recaptcha_client_ip, _ = get_client_ip(request)
+        recaptcha_client_ip, _ = get_client_ip(request)
+        return recaptcha_client_ip
 
-    def get_response(self, value: str) -> client.RecaptchaResponse:
+    def get_response(self, value: str) -> RecaptchaResponse:
+        return self.get_captcha_response_with_payload(
+            value=value,
+            secret_key=self.default_recaptcha_secret_key,
+            client_ip=self.default_recaptcha_client_ip,
+        )
+
+    def get_captcha_response_with_payload(self, value: str, secret_key: str, client_ip: str) -> RecaptchaResponse:
         try:
             check_captcha = client.submit(
                 recaptcha_response=value,
-                secret_key=self.recaptcha_secret_key,
-                remoteip=self.recaptcha_client_ip,
+                secret_key=secret_key,
+                remoteip=client_ip,
             )
         except HTTPError:  # Catch timeouts, etc
             logger.exception("Couldn't get response, HTTPError")
@@ -54,33 +97,25 @@ class ReCaptchaValidator:
 
         return check_captcha
 
-    def pre_validate_response(self, check_captcha: client.RecaptchaResponse):
-        if not check_captcha.is_valid:
-            logger.error(
-                "ReCAPTCHA validation failed due to: %s", check_captcha.error_codes
-            )
-            raise ValidationError(
-                self.messages["captcha_invalid"], code="captcha_invalid"
-            )
+    def pre_validate_response(self, check_captcha: RecaptchaResponse):
+        if check_captcha.is_valid:
+            return
+
+        logger.error(
+            "ReCAPTCHA validation failed due to: %s", check_captcha.error_codes
+        )
+        raise ValidationError(
+            self.messages["captcha_invalid"], code="captcha_invalid"
+        )
 
 
 class ReCaptchaV2Validator(ReCaptchaValidator):
     def __init__(self, secret_key):
-        self.recaptcha_secret_key = secret_key
+        self.default_recaptcha_secret_key = secret_key
 
-    def __call__(self, value, serializer_field=None):
-        if serializer_field and not self.recaptcha_client_ip:
-            self.set_client_ip(serializer_field)
+    def process_response(self, check_captcha_response):
+        score = check_captcha_response.extra_data.get("score", None)
 
-        if self.is_testing():
-            self.testing_validation()
-            return
-
-        check_captcha = self.get_response(value)
-
-        self.pre_validate_response(check_captcha)
-
-        score = check_captcha.extra_data.get("score", None)
         if score is not None:
             logger.error(
                 "The response contains score, reCAPTCHA v2 response doesn't"
@@ -93,22 +128,11 @@ class ReCaptchaV3Validator(ReCaptchaValidator):
     def __init__(self, action, required_score, secret_key):
         self.recaptcha_action = action
         self.recaptcha_required_score = required_score
-        self.recaptcha_secret_key = secret_key
         self.score = None
+        self.default_recaptcha_secret_key = secret_key
 
-    def __call__(self, value, serializer_field=None):
-        if serializer_field and not self.recaptcha_client_ip:
-            self.set_client_ip(serializer_field)
-
-        if self.is_testing():
-            self.testing_validation()
-            return
-
-        check_captcha = self.get_response(value)
-
-        self.pre_validate_response(check_captcha)
-
-        self.score = check_captcha.extra_data.get("score", None)
+    def process_response(self, check_captcha_response):
+        self.score = check_captcha_response.extra_data.get("score", None)
         if self.score is None:
             logger.error(
                 "The response not contains score, reCAPTCHA v3 response must"
@@ -116,7 +140,7 @@ class ReCaptchaV3Validator(ReCaptchaValidator):
             )
             raise ValidationError(self.messages["captcha_error"], code="captcha_error")
 
-        action = check_captcha.extra_data.get("action", "")
+        action = check_captcha_response.extra_data.get("action", "")
 
         if self.recaptcha_required_score >= float(self.score):
             logger.error(
