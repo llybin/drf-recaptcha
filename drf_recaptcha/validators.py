@@ -1,4 +1,5 @@
 import logging
+from typing import TYPE_CHECKING
 from urllib.error import HTTPError
 
 from django.conf import settings
@@ -7,7 +8,9 @@ from ipware import get_client_ip
 from rest_framework.serializers import ValidationError
 
 from drf_recaptcha import client
-from drf_recaptcha.client import RecaptchaResponse
+
+if TYPE_CHECKING:
+    from drf_recaptcha.client import RecaptchaResponse
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +31,9 @@ class ReCaptchaValidator:
             return
 
         client_ip = self._get_client_ip_from_context_or_default(serializer_field)
-        recaptcha_secret_key = self._get_secret_key_from_context_or_default(serializer_field)
+        recaptcha_secret_key = self._get_secret_key_from_context_or_default(
+            serializer_field
+        )
 
         check_captcha = self.get_captcha_response_with_payload(
             value=value,
@@ -58,7 +63,9 @@ class ReCaptchaValidator:
         if not serializer_field:
             return self.default_recaptcha_secret_key
 
-        return serializer_field.context.get("recaptcha_secret_key", self.default_recaptcha_secret_key)
+        return serializer_field.context.get(
+            "recaptcha_secret_key", self.default_recaptcha_secret_key
+        )
 
     def _get_client_ip_from_context_or_default(self, serializer_field=None) -> str:
         if serializer_field and not self.default_recaptcha_client_ip:
@@ -77,14 +84,16 @@ class ReCaptchaValidator:
         recaptcha_client_ip, _ = get_client_ip(request)
         return recaptcha_client_ip
 
-    def get_response(self, value: str) -> RecaptchaResponse:
+    def get_response(self, value: str) -> "RecaptchaResponse":
         return self.get_captcha_response_with_payload(
             value=value,
             secret_key=self.default_recaptcha_secret_key,
             client_ip=self.default_recaptcha_client_ip,
         )
 
-    def get_captcha_response_with_payload(self, value: str, secret_key: str, client_ip: str) -> RecaptchaResponse:
+    def get_captcha_response_with_payload(
+        self, value: str, secret_key: str, client_ip: str
+    ) -> "RecaptchaResponse":
         try:
             check_captcha = client.submit(
                 recaptcha_response=value,
@@ -97,16 +106,14 @@ class ReCaptchaValidator:
 
         return check_captcha
 
-    def pre_validate_response(self, check_captcha: RecaptchaResponse):
+    def pre_validate_response(self, check_captcha: "RecaptchaResponse") -> None:
         if check_captcha.is_valid:
             return
 
         logger.error(
             "ReCAPTCHA validation failed due to: %s", check_captcha.error_codes
         )
-        raise ValidationError(
-            self.messages["captcha_invalid"], code="captcha_invalid"
-        )
+        raise ValidationError(self.messages["captcha_invalid"], code="captcha_invalid")
 
 
 class ReCaptchaV2Validator(ReCaptchaValidator):

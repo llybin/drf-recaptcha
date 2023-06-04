@@ -62,7 +62,13 @@ def get_v3_default_score_from_settings() -> int or float or None:
 
 
 class ReCaptchaV3Field(CharField):
-    def __init__(self, action: str, required_score: float = None, secret_key: str = None, **kwargs):
+    def __init__(
+        self,
+        action: str,
+        required_score: float = None,
+        secret_key: str = None,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
 
         self.write_only = True

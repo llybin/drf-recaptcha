@@ -1,4 +1,4 @@
-from unittest.mock import Mock, ANY
+from unittest.mock import ANY, Mock
 
 import pytest
 from rest_framework.serializers import ValidationError
@@ -14,9 +14,7 @@ def _drf_recaptcha_testing(settings):
 
 @pytest.fixture
 def mocked_serializer_field_with_request_context():
-    return Mock(
-        context={"request": Mock(META={"HTTP_X_FORWARDED_FOR": "4.3.2.1"})}
-    )
+    return Mock(context={"request": Mock(META={"HTTP_X_FORWARDED_FOR": "4.3.2.1"})})
 
 
 @pytest.fixture
@@ -29,26 +27,29 @@ def mocked_serializer_field_with_request_secret_key_context():
     )
 
 
-@pytest.fixture(params=[
-    (
-        ReCaptchaV2Validator,
-        {},
-        RecaptchaResponse(is_valid=True)),
-    (
-        ReCaptchaV3Validator,
-        {"action": "test_action", "required_score": 0.4},
-        RecaptchaResponse(
-            is_valid=True, extra_data={"score": 0.6, "action": "test_action"}
+@pytest.fixture(
+    params=[
+        (ReCaptchaV2Validator, {}, RecaptchaResponse(is_valid=True)),
+        (
+            ReCaptchaV3Validator,
+            {"action": "test_action", "required_score": 0.4},
+            RecaptchaResponse(
+                is_valid=True, extra_data={"score": 0.6, "action": "test_action"}
+            ),
         ),
-    ),
-])
+    ]
+)
 def validator_with_mocked_captcha_valid_response(request):
     validator_class = request.param[0]
     params = request.param[1]
     response = request.param[2]
 
-    validator_with_mocked_get_response = validator_class(secret_key="TEST_SECRET_KEY", **params)
-    validator_with_mocked_get_response.get_captcha_response_with_payload = Mock(return_value=response)
+    validator_with_mocked_get_response = validator_class(
+        secret_key="TEST_SECRET_KEY", **params
+    )
+    validator_with_mocked_get_response.get_captcha_response_with_payload = Mock(
+        return_value=response
+    )
 
     return validator_with_mocked_get_response
 
@@ -137,7 +138,9 @@ def test_recaptcha_validator_get_response_called_with_correct_ip(
     validator_with_mocked_captcha_valid_response,
     mocked_serializer_field_with_request_context,
 ):
-    validator_with_mocked_captcha_valid_response("test_token", mocked_serializer_field_with_request_context)
+    validator_with_mocked_captcha_valid_response(
+        "test_token", mocked_serializer_field_with_request_context
+    )
 
     validator_with_mocked_captcha_valid_response.get_captcha_response_with_payload.assert_called_once_with(
         secret_key="TEST_SECRET_KEY",
@@ -150,7 +153,9 @@ def test_recaptcha_validator_takes_secret_key_from_context(
     validator_with_mocked_captcha_valid_response,
     mocked_serializer_field_with_request_secret_key_context,
 ):
-    validator_with_mocked_captcha_valid_response("test_token", mocked_serializer_field_with_request_secret_key_context)
+    validator_with_mocked_captcha_valid_response(
+        "test_token", mocked_serializer_field_with_request_secret_key_context
+    )
 
     validator_with_mocked_captcha_valid_response.get_captcha_response_with_payload.assert_called_once_with(
         secret_key="from-context",
