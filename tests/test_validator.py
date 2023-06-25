@@ -54,18 +54,6 @@ def validator_with_mocked_captcha_valid_response(request):
     return validator_with_mocked_get_response
 
 
-@pytest.mark.parametrize(
-    ("validator_class", "params"),
-    [
-        (ReCaptchaV2Validator, {}),
-        (ReCaptchaV3Validator, {"action": "test_action", "required_score": 0.4}),
-    ],
-)
-def test_recaptcha_validator_get_response_success(validator_class, params):
-    validator = validator_class(secret_key="TEST_SECRET_KEY", **params)
-    assert isinstance(validator.get_response("test_token"), RecaptchaResponse)
-
-
 def test_recaptcha_validator_call_success(validator_with_mocked_captcha_valid_response):
     try:
         validator_with_mocked_captcha_valid_response("test_token")

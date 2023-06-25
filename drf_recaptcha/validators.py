@@ -22,7 +22,6 @@ class ReCaptchaValidator:
         "captcha_invalid": "Error verifying reCAPTCHA, please try again.",
         "captcha_error": "Error verifying reCAPTCHA, please try again.",
     }
-    default_recaptcha_client_ip = ""
     default_recaptcha_secret_key = ""
 
     def __call__(self, value, serializer_field=None):
@@ -68,10 +67,10 @@ class ReCaptchaValidator:
         )
 
     def _get_client_ip_from_context_or_default(self, serializer_field=None) -> str:
-        if serializer_field and not self.default_recaptcha_client_ip:
+        if serializer_field:
             return self._get_client_ip_from_context(serializer_field)
 
-        return self.default_recaptcha_client_ip
+        return ""
 
     @staticmethod
     def _get_client_ip_from_context(serializer_field):
@@ -83,13 +82,6 @@ class ReCaptchaValidator:
 
         recaptcha_client_ip, _ = get_client_ip(request)
         return recaptcha_client_ip
-
-    def get_response(self, value: str) -> "RecaptchaResponse":
-        return self.get_captcha_response_with_payload(
-            value=value,
-            secret_key=self.default_recaptcha_secret_key,
-            client_ip=self.default_recaptcha_client_ip,
-        )
 
     def get_captcha_response_with_payload(
         self, value: str, secret_key: str, client_ip: str
