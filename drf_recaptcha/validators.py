@@ -59,9 +59,6 @@ class ReCaptchaValidator:
             "recaptcha_secret_key", self.default_recaptcha_secret_key
         )
 
-    def _get_client_ip_from_context_or_default(self, serializer_field) -> str:
-        return self._get_client_ip_from_context(serializer_field)
-
     @staticmethod
     def _get_client_ip_from_context(serializer_field):
         request = serializer_field.context.get("request")
