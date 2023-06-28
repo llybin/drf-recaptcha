@@ -12,21 +12,6 @@ def _drf_recaptcha_testing(settings):
     settings.DRF_RECAPTCHA_TESTING = True
 
 
-@pytest.fixture
-def mocked_serializer_field_with_request_context():
-    return Mock(context={"request": Mock(META={"HTTP_X_FORWARDED_FOR": "4.3.2.1"})})
-
-
-@pytest.fixture
-def mocked_serializer_field_with_request_secret_key_context():
-    return Mock(
-        context={
-            "request": Mock(META={"HTTP_X_FORWARDED_FOR": "4.3.2.1"}),
-            "recaptcha_secret_key": "from-context",
-        }
-    )
-
-
 @pytest.fixture(
     params=[
         (ReCaptchaV2Validator, {}, RecaptchaResponse(is_valid=True)),
@@ -54,9 +39,14 @@ def validator_with_mocked_captcha_valid_response(request):
     return validator_with_mocked_get_response
 
 
-def test_recaptcha_validator_call_success(validator_with_mocked_captcha_valid_response):
+def test_recaptcha_validator_call_success(
+    validator_with_mocked_captcha_valid_response,
+    mocked_serializer_field_with_request_context,
+):
     try:
-        validator_with_mocked_captcha_valid_response("test_token")
+        validator_with_mocked_captcha_valid_response(
+            "test_token", mocked_serializer_field_with_request_context
+        )
     except ValidationError:
         pytest.fail("Validation is not passed")
 
@@ -112,12 +102,18 @@ def test_recaptcha_validator_call_success(validator_with_mocked_captcha_valid_re
         ),
     ],
 )
-def test_recaptcha_validator_call_fail(validator_class, params, response, error):
+def test_recaptcha_validator_call_fail(
+    validator_class,
+    params,
+    response,
+    error,
+    mocked_serializer_field_with_request_context,
+):
     validator = validator_class(secret_key="TEST_SECRET_KEY", **params)
     validator.get_captcha_response_with_payload = Mock(return_value=response)
 
     with pytest.raises(ValidationError) as exc_info:
-        validator("test_token")
+        validator("test_token", mocked_serializer_field_with_request_context)
 
     assert str(exc_info.value) == error
 

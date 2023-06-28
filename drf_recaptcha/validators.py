@@ -24,12 +24,12 @@ class ReCaptchaValidator:
     }
     default_recaptcha_secret_key = ""
 
-    def __call__(self, value, serializer_field=None):
-        if self.is_testing():
-            self.testing_validation()
+    def __call__(self, value, serializer_field):
+        if self._is_testing():
+            self._run_validation_as_testing()
             return
 
-        client_ip = self._get_client_ip_from_context_or_default(serializer_field)
+        client_ip = self._get_client_ip_from_context(serializer_field)
         recaptcha_secret_key = self._get_secret_key_from_context_or_default(
             serializer_field
         )
@@ -40,37 +40,27 @@ class ReCaptchaValidator:
             client_ip=client_ip,
         )
 
-        self.pre_validate_response(check_captcha)
-
-        self.process_response(check_captcha)
-
-    def process_response(self, check_captcha_response):
-        ...
+        self._pre_validate_response(check_captcha)
+        self._process_response(check_captcha)
 
     @staticmethod
-    def is_testing() -> bool:
+    def _is_testing() -> bool:
         return getattr(settings, "DRF_RECAPTCHA_TESTING", False)
 
-    def testing_validation(self):
+    def _run_validation_as_testing(self):
         testing_result = getattr(settings, "DRF_RECAPTCHA_TESTING_PASS", True)
         if not testing_result:
             raise ValidationError(
                 self.messages["captcha_invalid"], code="captcha_invalid"
             )
 
-    def _get_secret_key_from_context_or_default(self, serializer_field=None) -> str:
-        if not serializer_field:
-            return self.default_recaptcha_secret_key
-
+    def _get_secret_key_from_context_or_default(self, serializer_field) -> str:
         return serializer_field.context.get(
             "recaptcha_secret_key", self.default_recaptcha_secret_key
         )
 
-    def _get_client_ip_from_context_or_default(self, serializer_field=None) -> str:
-        if serializer_field:
-            return self._get_client_ip_from_context(serializer_field)
-
-        return ""
+    def _get_client_ip_from_context_or_default(self, serializer_field) -> str:
+        return self._get_client_ip_from_context(serializer_field)
 
     @staticmethod
     def _get_client_ip_from_context(serializer_field):
@@ -98,7 +88,7 @@ class ReCaptchaValidator:
 
         return check_captcha
 
-    def pre_validate_response(self, check_captcha: "RecaptchaResponse") -> None:
+    def _pre_validate_response(self, check_captcha: "RecaptchaResponse") -> None:
         if check_captcha.is_valid:
             return
 
@@ -107,12 +97,15 @@ class ReCaptchaValidator:
         )
         raise ValidationError(self.messages["captcha_invalid"], code="captcha_invalid")
 
+    def _process_response(self, check_captcha_response):
+        ...
+
 
 class ReCaptchaV2Validator(ReCaptchaValidator):
     def __init__(self, secret_key):
         self.default_recaptcha_secret_key = secret_key
 
-    def process_response(self, check_captcha_response):
+    def _process_response(self, check_captcha_response):
         score = check_captcha_response.extra_data.get("score", None)
 
         if score is not None:
@@ -130,7 +123,7 @@ class ReCaptchaV3Validator(ReCaptchaValidator):
         self.score = None
         self.default_recaptcha_secret_key = secret_key
 
-    def process_response(self, check_captcha_response):
+    def _process_response(self, check_captcha_response):
         self.score = check_captcha_response.extra_data.get("score", None)
         if self.score is None:
             logger.error(
