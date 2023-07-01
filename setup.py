@@ -22,7 +22,7 @@ setup(
         "django-ipware>=2.1",
     ],
     setup_requires=["pytest-runner"],
-    tests_require=["pytest", "pytest-django", "pytest-cov"],
+    tests_require=["pytest", "pytest-django", "pytest-cov", "pytest-mock"],
     python_requires=">=3.7",
     include_package_data=True,
     zip_safe=False,

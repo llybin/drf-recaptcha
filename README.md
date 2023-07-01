@@ -82,6 +82,41 @@ class FeedbackSerializer(ModelSerializer):
         attrs.pop("recaptcha")
         ...
         return attrs
+
+    
+class DynamicContextSecretKey(APIView):
+    def post(self, request):
+        if request.platform == "android":
+            recaptcha_secret_key = "SPECIAL_FOR_ANDROID"
+        else:
+            recaptcha_secret_key = "SPECIAL_FOR_IOS"
+        serializer = WithReCaptchaSerializer(
+            data=request.data,
+            context={
+                "request": request,
+                "recaptcha_secret_key": recaptcha_secret_key,
+            },
+        )
+        serializer.is_valid(raise_exception=True)
+        ...
+    
+
+class DynamicContextSecretKey(GenericAPIView):
+    serializer_class = WithReCaptchaSerializer
+    
+    def get_serializer_context(self):
+        if self.request.platform == "android":
+            recaptcha_secret_key = "SPECIAL_FOR_ANDROID"
+        else:
+            recaptcha_secret_key = "SPECIAL_FOR_IOS"
+        context = super().get_serializer_context()
+        context.update({"recaptcha_secret_key": recaptcha_secret_key})
+        return context
+    
+
+class MobileSerializer(Serializer):
+    recaptcha = ReCaptchaV3Field(secret_key="")
+    ...
 ```
 
 ## Settings
@@ -97,6 +132,12 @@ class FeedbackSerializer(ModelSerializer):
 `DRF_RECAPTCHA_PROXY` - by default: `{}`. Type: dict. e.g. `{'http': 'http://127.0.0.1:8000', 'https': 'https://127.0.0.1:8000'}`
 
 `DRF_RECAPTCHA_VERIFY_REQUEST_TIMEOUT` - by default: `10`. Type: int.
+
+### Priority of secret_key value
+
+1.  settings `DRF_RECAPTCHA_SECRET_KEY`
+2.  the argument `secret_key` of field
+3.  request.context["recaptcha_secret_key"]
 
 ## reCAPTCHA v3
 

@@ -1,5 +1,3 @@
-from unittest import mock
-
 import pytest
 from rest_framework.serializers import ValidationError
 
@@ -7,33 +5,13 @@ from drf_recaptcha.client import RecaptchaResponse
 from drf_recaptcha.validators import ReCaptchaV2Validator, ReCaptchaV3Validator
 
 
-@pytest.mark.parametrize(
-    ("validator_class", "params"),
-    [
-        (ReCaptchaV2Validator, {}),
-        (ReCaptchaV3Validator, {"action": "test_action", "required_score": 0.4}),
-    ],
-)
-def test_recaptcha_validator_get_response_success(validator_class, params):
-    validator = validator_class(secret_key="TEST_SECRET_KEY", **params)
-    assert isinstance(validator.get_response("test_token"), RecaptchaResponse)
+@pytest.fixture
+def _drf_recaptcha_testing(settings):
+    settings.DRF_RECAPTCHA_TESTING = True
 
 
-@pytest.mark.parametrize(
-    ("validator_class", "params"),
-    [
-        (ReCaptchaV2Validator, {}),
-        (ReCaptchaV3Validator, {"action": "test_action", "required_score": 0.4}),
-    ],
-)
-def test_recaptcha_validator_get_response_fail(validator_class, params):
-    validator = validator_class(secret_key="TEST_SECRET_KEY", **params)
-    assert isinstance(validator.get_response("test_token"), RecaptchaResponse)
-
-
-@pytest.mark.parametrize(
-    ("validator_class", "params", "response"),
-    [
+@pytest.fixture(
+    params=[
         (ReCaptchaV2Validator, {}, RecaptchaResponse(is_valid=True)),
         (
             ReCaptchaV3Validator,
@@ -42,13 +20,31 @@ def test_recaptcha_validator_get_response_fail(validator_class, params):
                 is_valid=True, extra_data={"score": 0.6, "action": "test_action"}
             ),
         ),
-    ],
+    ]
 )
-def test_recaptcha_validator_call_success(validator_class, params, response):
-    validator = validator_class(secret_key="TEST_SECRET_KEY", **params)
-    validator.get_response = mock.Mock(return_value=response)
+def validator_with_mocked_captcha_valid_response(request, mocker):
+    validator_class = request.param[0]
+    params = request.param[1]
+    response = request.param[2]
+
+    validator_with_mocked_get_response = validator_class(
+        secret_key="TEST_SECRET_KEY", **params
+    )
+    validator_with_mocked_get_response._get_captcha_response_with_payload = mocker.Mock(
+        return_value=response
+    )
+
+    return validator_with_mocked_get_response
+
+
+def test_recaptcha_validator_call_success(
+    validator_with_mocked_captcha_valid_response,
+    mocked_serializer_field_with_request_context,
+):
     try:
-        validator("test_token")
+        validator_with_mocked_captcha_valid_response(
+            "test_token", mocked_serializer_field_with_request_context
+        )
     except ValidationError:
         pytest.fail("Validation is not passed")
 
@@ -104,34 +100,49 @@ def test_recaptcha_validator_call_success(validator_class, params, response):
         ),
     ],
 )
-def test_recaptcha_validator_call_fail(validator_class, params, response, error):
+def test_recaptcha_validator_call_fail(
+    validator_class,
+    params,
+    response,
+    error,
+    mocked_serializer_field_with_request_context,
+    mocker,
+):
     validator = validator_class(secret_key="TEST_SECRET_KEY", **params)
-    validator.get_response = mock.Mock(return_value=response)
+    validator._get_captcha_response_with_payload = mocker.Mock(return_value=response)
 
     with pytest.raises(ValidationError) as exc_info:
-        validator("test_token")
+        validator("test_token", mocked_serializer_field_with_request_context)
 
     assert str(exc_info.value) == error
 
 
-@pytest.mark.parametrize(
-    ("validator_class", "params"),
-    [
-        (ReCaptchaV2Validator, {}),
-        (ReCaptchaV3Validator, {"action": "test_action", "required_score": 0.4}),
-    ],
-)
-def test_recaptcha_validator_set_context(validator_class, params, settings):
-    settings.DRF_RECAPTCHA_TESTING = True
-
-    validator = validator_class(secret_key="TEST_SECRET_KEY", **params)
-
-    assert validator.recaptcha_client_ip == ""
-
-    serializer_field = mock.Mock(
-        context={"request": mock.Mock(META={"HTTP_X_FORWARDED_FOR": "4.3.2.1"})}
+def test_recaptcha_validator_get_response_called_with_correct_ip(
+    validator_with_mocked_captcha_valid_response,
+    mocked_serializer_field_with_request_context,
+):
+    validator_with_mocked_captcha_valid_response(
+        "test_token", mocked_serializer_field_with_request_context
     )
 
-    validator("test_token", serializer_field)
+    validator_with_mocked_captcha_valid_response._get_captcha_response_with_payload.assert_called_once_with(
+        secret_key="TEST_SECRET_KEY",
+        client_ip="4.3.2.1",
+        value="test_token",
+    )
 
-    assert validator.recaptcha_client_ip == "4.3.2.1"
+
+def test_recaptcha_validator_takes_secret_key_from_context(
+    validator_with_mocked_captcha_valid_response,
+    mocked_serializer_field_with_request_secret_key_context,
+    mocker,
+):
+    validator_with_mocked_captcha_valid_response(
+        "test_token", mocked_serializer_field_with_request_secret_key_context
+    )
+
+    validator_with_mocked_captcha_valid_response._get_captcha_response_with_payload.assert_called_once_with(
+        secret_key="from-context",
+        client_ip=mocker.ANY,
+        value="test_token",
+    )

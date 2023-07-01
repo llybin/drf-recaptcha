@@ -7,12 +7,14 @@ from drf_recaptcha.validators import ReCaptchaV2Validator, ReCaptchaV3Validator
 
 
 class ReCaptchaV2Field(CharField):
-    def __init__(self, **kwargs):
+    def __init__(self, secret_key: str = None, **kwargs):
         super().__init__(**kwargs)
 
         self.write_only = True
 
-        validator = ReCaptchaV2Validator(secret_key=settings.DRF_RECAPTCHA_SECRET_KEY)
+        secret_key = secret_key or settings.DRF_RECAPTCHA_SECRET_KEY
+
+        validator = ReCaptchaV2Validator(secret_key=secret_key)
         self.validators.append(validator)
 
 
@@ -60,7 +62,13 @@ def get_v3_default_score_from_settings() -> int or float or None:
 
 
 class ReCaptchaV3Field(CharField):
-    def __init__(self, action: str, required_score: float = None, **kwargs):
+    def __init__(
+        self,
+        action: str,
+        required_score: float = None,
+        secret_key: str = None,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
 
         self.write_only = True
@@ -76,10 +84,12 @@ class ReCaptchaV3Field(CharField):
             or DEFAULT_V3_SCORE
         )
 
+        secret_key = secret_key or settings.DRF_RECAPTCHA_SECRET_KEY
+
         self.__validator = ReCaptchaV3Validator(
             action=action,
             required_score=self.required_score,
-            secret_key=settings.DRF_RECAPTCHA_SECRET_KEY,
+            secret_key=secret_key,
         )
         self.validators.append(self.__validator)
 
