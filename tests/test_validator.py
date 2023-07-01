@@ -1,5 +1,3 @@
-from unittest.mock import ANY, Mock
-
 import pytest
 from rest_framework.serializers import ValidationError
 
@@ -24,7 +22,7 @@ def _drf_recaptcha_testing(settings):
         ),
     ]
 )
-def validator_with_mocked_captcha_valid_response(request):
+def validator_with_mocked_captcha_valid_response(request, mocker):
     validator_class = request.param[0]
     params = request.param[1]
     response = request.param[2]
@@ -32,7 +30,7 @@ def validator_with_mocked_captcha_valid_response(request):
     validator_with_mocked_get_response = validator_class(
         secret_key="TEST_SECRET_KEY", **params
     )
-    validator_with_mocked_get_response._get_captcha_response_with_payload = Mock(
+    validator_with_mocked_get_response._get_captcha_response_with_payload = mocker.Mock(
         return_value=response
     )
 
@@ -108,9 +106,10 @@ def test_recaptcha_validator_call_fail(
     response,
     error,
     mocked_serializer_field_with_request_context,
+    mocker,
 ):
     validator = validator_class(secret_key="TEST_SECRET_KEY", **params)
-    validator._get_captcha_response_with_payload = Mock(return_value=response)
+    validator._get_captcha_response_with_payload = mocker.Mock(return_value=response)
 
     with pytest.raises(ValidationError) as exc_info:
         validator("test_token", mocked_serializer_field_with_request_context)
@@ -136,6 +135,7 @@ def test_recaptcha_validator_get_response_called_with_correct_ip(
 def test_recaptcha_validator_takes_secret_key_from_context(
     validator_with_mocked_captcha_valid_response,
     mocked_serializer_field_with_request_secret_key_context,
+    mocker,
 ):
     validator_with_mocked_captcha_valid_response(
         "test_token", mocked_serializer_field_with_request_secret_key_context
@@ -143,6 +143,6 @@ def test_recaptcha_validator_takes_secret_key_from_context(
 
     validator_with_mocked_captcha_valid_response._get_captcha_response_with_payload.assert_called_once_with(
         secret_key="from-context",
-        client_ip=ANY,
+        client_ip=mocker.ANY,
         value="test_token",
     )
