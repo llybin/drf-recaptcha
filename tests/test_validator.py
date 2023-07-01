@@ -32,7 +32,7 @@ def validator_with_mocked_captcha_valid_response(request):
     validator_with_mocked_get_response = validator_class(
         secret_key="TEST_SECRET_KEY", **params
     )
-    validator_with_mocked_get_response.get_captcha_response_with_payload = Mock(
+    validator_with_mocked_get_response._get_captcha_response_with_payload = Mock(
         return_value=response
     )
 
@@ -110,7 +110,7 @@ def test_recaptcha_validator_call_fail(
     mocked_serializer_field_with_request_context,
 ):
     validator = validator_class(secret_key="TEST_SECRET_KEY", **params)
-    validator.get_captcha_response_with_payload = Mock(return_value=response)
+    validator._get_captcha_response_with_payload = Mock(return_value=response)
 
     with pytest.raises(ValidationError) as exc_info:
         validator("test_token", mocked_serializer_field_with_request_context)
@@ -126,7 +126,7 @@ def test_recaptcha_validator_get_response_called_with_correct_ip(
         "test_token", mocked_serializer_field_with_request_context
     )
 
-    validator_with_mocked_captcha_valid_response.get_captcha_response_with_payload.assert_called_once_with(
+    validator_with_mocked_captcha_valid_response._get_captcha_response_with_payload.assert_called_once_with(
         secret_key="TEST_SECRET_KEY",
         client_ip="4.3.2.1",
         value="test_token",
@@ -141,7 +141,7 @@ def test_recaptcha_validator_takes_secret_key_from_context(
         "test_token", mocked_serializer_field_with_request_secret_key_context
     )
 
-    validator_with_mocked_captcha_valid_response.get_captcha_response_with_payload.assert_called_once_with(
+    validator_with_mocked_captcha_valid_response._get_captcha_response_with_payload.assert_called_once_with(
         secret_key="from-context",
         client_ip=ANY,
         value="test_token",

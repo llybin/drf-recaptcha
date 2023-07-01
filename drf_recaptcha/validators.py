@@ -34,7 +34,7 @@ class ReCaptchaValidator:
             serializer_field
         )
 
-        check_captcha = self.get_captcha_response_with_payload(
+        check_captcha = self._get_captcha_response_with_payload(
             value=value,
             secret_key=recaptcha_secret_key,
             client_ip=client_ip,
@@ -70,7 +70,7 @@ class ReCaptchaValidator:
         recaptcha_client_ip, _ = get_client_ip(request)
         return recaptcha_client_ip
 
-    def get_captcha_response_with_payload(
+    def _get_captcha_response_with_payload(
         self, value: str, secret_key: str, client_ip: str
     ) -> "RecaptchaResponse":
         try:
