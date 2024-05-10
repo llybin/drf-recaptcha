@@ -139,6 +139,14 @@ class MobileSerializer(Serializer):
 2.  the argument `secret_key` of field
 3.  request.context["recaptcha_secret_key"]
 
+### Silence the check error
+
+If you need to disable the error, you can do so using the django settings.
+
+```python
+SILENCED_SYSTEM_CHECKS = ['drf_recaptcha.checks.recaptcha_system_check']
+```
+
 ## reCAPTCHA v3
 
 Validation is passed if the score value returned by Google is greater than or equal to required score.
