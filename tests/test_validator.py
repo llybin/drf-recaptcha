@@ -20,6 +20,13 @@ def _drf_recaptcha_testing(settings):
                 is_valid=True, extra_data={"score": 0.6, "action": "test_action"}
             ),
         ),
+        (
+            ReCaptchaV3Validator,
+            {"action": "test_action", "required_score": 0.5},
+            RecaptchaResponse(
+                is_valid=True, extra_data={"score": 0.5, "action": "test_action"}
+            ),
+        ),
     ]
 )
 def validator_with_mocked_captcha_valid_response(request, mocker):

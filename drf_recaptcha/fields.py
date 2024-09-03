@@ -79,9 +79,16 @@ class ReCaptchaV3Field(CharField):
 
         self.required_score = (
             action_score_from_settings
-            or required_score
-            or default_score_from_settings
-            or DEFAULT_V3_SCORE
+            if action_score_from_settings is not None
+            else (
+                required_score
+                if required_score is not None
+                else (
+                    default_score_from_settings
+                    if default_score_from_settings is not None
+                    else DEFAULT_V3_SCORE
+                )
+            )
         )
 
         secret_key = secret_key or settings.DRF_RECAPTCHA_SECRET_KEY

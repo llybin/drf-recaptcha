@@ -131,7 +131,7 @@ class ReCaptchaV3Validator(ReCaptchaValidator):
 
         action = check_captcha_response.extra_data.get("action", "")
 
-        if self.recaptcha_required_score >= float(self.score):
+        if self.recaptcha_required_score > float(self.score):
             logger.error(
                 "ReCAPTCHA validation failed due to score of %s"
                 " being lower than the required amount for action '%s'.",
