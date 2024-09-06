@@ -118,3 +118,20 @@ def test_recaptcha_v3_field_score_improperly_configured(
         ReCaptchaV3Field(action="test_action", **params)
 
     assert str(exc_info.value) == error
+
+
+@pytest.mark.parametrize(
+    ("params", "from_settings", "settings_default", "expected"),
+    [
+        ({"required_score": 0}, {}, None, 0),  # Expect 0 because it's explicitly set
+    ],
+)
+def test_recaptcha_v3_field_valid_scores(
+    params, from_settings, settings_default, expected, settings
+):
+
+    settings.DRF_RECAPTCHA_ACTION_V3_SCORES = from_settings
+    settings.DRF_RECAPTCHA_DEFAULT_V3_SCORE = settings_default
+
+    field = ReCaptchaV3Field(action="test_action", **params)
+    assert field.required_score == expected
