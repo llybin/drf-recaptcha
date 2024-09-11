@@ -96,7 +96,7 @@ class ReCaptchaValidator:
         if check_captcha.is_valid:
             return
 
-        logger.error(
+        logger.info(
             "ReCAPTCHA validation failed due to: %s",
             check_captcha.error_codes,
         )
@@ -139,7 +139,7 @@ class ReCaptchaV3Validator(ReCaptchaValidator):
         action = check_captcha_response.extra_data.get("action", "")
 
         if self.recaptcha_required_score > float(self.score):
-            logger.error(
+            logger.info(
                 "ReCAPTCHA validation failed due to score of %s"
                 " being lower than the required amount for action '%s'.",
                 self.score,
@@ -151,7 +151,7 @@ class ReCaptchaV3Validator(ReCaptchaValidator):
             )
 
         if self.recaptcha_action != action:
-            logger.error(
+            logger.warning(
                 "ReCAPTCHA validation failed due to value of action '%s'"
                 " is not equal with defined '%s'.",
                 action,
