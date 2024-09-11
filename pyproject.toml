@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "drf-recaptcha"
-version = "4.0.0"
+version = "4.0.1"
 description = "Django rest framework recaptcha field serializer"
 authors = ["Lev Lybin <lev.lybin@gmail.com>"]
 license = "MIT"
