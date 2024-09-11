@@ -1,11 +1,10 @@
 import pytest
 from django.core.exceptions import ImproperlyConfigured
+from drf_recaptcha.constants import TEST_V2_SECRET_KEY
+from drf_recaptcha.fields import ReCaptchaV2Field, ReCaptchaV3Field
 from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import Serializer
 from rest_framework.test import APIRequestFactory
-
-from drf_recaptcha.constants import TEST_V2_SECRET_KEY
-from drf_recaptcha.fields import ReCaptchaV2Field, ReCaptchaV3Field
 
 
 @pytest.mark.parametrize(
@@ -22,8 +21,8 @@ def test_serializer_requires_context(field_class, params):
         serializer.is_valid(raise_exception=True)
 
     assert (
-        str(exc_info.value)
-        == "Couldn't get client ip address. Check your serializer gets context with request."
+        str(exc_info.value) == "Couldn't get client ip address."
+        " Check your serializer gets context with request."
     )
 
 
@@ -55,5 +54,6 @@ def test_serializer_v3(settings):
 
     assert (
         str(exc_info.value)
-        == "{'token': [ErrorDetail(string='Error verifying reCAPTCHA, please try again.', code='captcha_error')]}"
+        == "{'token': [ErrorDetail(string='Error verifying reCAPTCHA, "
+        "please try again.', code='captcha_error')]}"
     )

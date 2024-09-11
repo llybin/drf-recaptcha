@@ -1,0 +1,125 @@
+[tool.poetry]
+name = "drf-recaptcha"
+version = "3.3.0"
+description = "Django rest framework recaptcha field serializer"
+authors = ["Lev Lybin <lev.lybin@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/llybin/drf-recaptcha"
+repository = "https://github.com/llybin/drf-recaptcha"
+keywords = [
+    "django",
+    "drf",
+    "rest",
+    "django-rest-framework",
+    "reCAPTCHA",
+    "reCAPTCHA v2",
+    "reCAPTCHA v3",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Web Environment",
+    "Environment :: Plugins",
+    "Intended Audience :: Developers",
+    "Framework :: Django",
+    "Framework :: Django :: 3.2",
+    "Framework :: Django :: 4.0",
+    "Framework :: Django :: 4.1",
+    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.0",
+    "Framework :: Django :: 5.1",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Security",
+    "Topic :: Software Development :: Libraries",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+django = "^3.2"
+djangorestframework = "^3.11"
+django-ipware = "^2.1"
+
+[tool.poetry.dev-dependencies]
+coverage = { version = "*", extras = ["toml"] }
+pytest = "*"
+pytest-django = "*"
+pytest-cov = "*"
+pytest-mock = "*"
+pytz = "*"
+ruff = "*"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
+
+[tool.ruff]
+preview = true
+target-version = "py312"
+src = ["drf_recaptcha"]
+
+[tool.ruff.lint]
+select = [
+    "F", "E", "W", "C", "I", "N", "UP", "YTT", "ASYNC", "S", "BLE", "FBT", "B", "A", "COM", "C4", "DTZ", "T10", "DJ",
+    "Q", "EM", "FA", "ISC", "ICN", "LOG", "G", "INP", "PIE", "T20", "PYI", "PT", "RSE", "RET", "SLF", "SLOT", "SIM",
+    "TID", "TCH", "INT", "ARG", "PTH", "TD", "FIX", "ERA", "PGH", "PL", "TRY", "FLY", "PERF", "FURB", "RUF"
+]
+ignore = [
+    "INP001", "RUF012", "PLC0415", "COM812", "ISC001",
+    "S310", "ARG001"
+]
+
+[tool.ruff.lint.per-file-ignores]
+"test_*.py" = ["ARG001", "S101", "PLR0913", "PLR0917", "PLR2004", "PLR6301", "SLF001"]
+"settings.py" = ["E501", "RUF001"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "tests.settings"
+addopts = "-ra --cache-clear --no-cov-on-fail --cov-report=term --cov-report xml:coverage.xml --cov=drf_recaptcha"
+console_output_style = "count"
+pythonpath = "."
+
+[tool.coverage.run]
+branch = true
+omit = [
+    "*__init__*",
+    "*/tests/*",
+]
+
+[tool.coverage.report]
+precision = 2
+fail_under = 94
+show_missing = true
+skip_covered = true
+ignore_errors = true
+exclude_also = [
+    # Don't complain about missing debug-only code:
+    "def __repr__",
+    "if self\\.debug",
+    # Don't complain if tests don't hit defensive assertion code:
+    "raise AssertionError",
+    "raise NotImplementedError",
+    # Don't complain if non-runnable code isn't run:
+    "if 0:",
+    "if __name__ == .__main__.:",
+    # Don't complain about abstract methods, they aren't run:
+    "@(abc\\.)?abstractmethod",
+    # Have to re-enable the standard pragma:
+    "pragma: no cover",
+    "pragma: nocover",
+    "pragma: full coverage",
+    # Don't complain TYPE_CHECKING:
+    "if TYPE_CHECKING:",
+    "if typing.TYPE_CHECKING:",
+]

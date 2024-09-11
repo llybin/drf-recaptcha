@@ -1,6 +1,5 @@
 import pytest
 from django.core.exceptions import ImproperlyConfigured
-
 from drf_recaptcha.fields import ReCaptchaV2Field, ReCaptchaV3Field
 from drf_recaptcha.validators import ReCaptchaV2Validator, ReCaptchaV3Validator
 
@@ -34,7 +33,11 @@ def test_recaptcha_v3_field_write_only(params, expected):
     ],
 )
 def test_recaptcha_v3_field_score_priority(
-    params, from_settings, settings_default, expected, settings
+    params,
+    from_settings,
+    settings_default,
+    expected,
+    settings,
 ):
     settings.DRF_RECAPTCHA_ACTION_V3_SCORES = from_settings
     settings.DRF_RECAPTCHA_DEFAULT_V3_SCORE = settings_default
@@ -109,7 +112,11 @@ def test_recaptcha_has_recaptcha_validator(field_class, params, validator_class)
     ],
 )
 def test_recaptcha_v3_field_score_improperly_configured(
-    params, from_settings, settings_default, error, settings
+    params,
+    from_settings,
+    settings_default,
+    error,
+    settings,
 ):
     settings.DRF_RECAPTCHA_ACTION_V3_SCORES = from_settings
     settings.DRF_RECAPTCHA_DEFAULT_V3_SCORE = settings_default
@@ -127,9 +134,12 @@ def test_recaptcha_v3_field_score_improperly_configured(
     ],
 )
 def test_recaptcha_v3_field_valid_scores(
-    params, from_settings, settings_default, expected, settings
+    params,
+    from_settings,
+    settings_default,
+    expected,
+    settings,
 ):
-
     settings.DRF_RECAPTCHA_ACTION_V3_SCORES = from_settings
     settings.DRF_RECAPTCHA_DEFAULT_V3_SCORE = settings_default
 

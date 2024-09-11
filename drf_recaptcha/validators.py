@@ -31,7 +31,7 @@ class ReCaptchaValidator:
 
         client_ip = self._get_client_ip_from_context(serializer_field)
         recaptcha_secret_key = self._get_secret_key_from_context_or_default(
-            serializer_field
+            serializer_field,
         )
 
         check_captcha = self._get_captcha_response_with_payload(
@@ -51,27 +51,34 @@ class ReCaptchaValidator:
         testing_result = getattr(settings, "DRF_RECAPTCHA_TESTING_PASS", True)
         if not testing_result:
             raise ValidationError(
-                self.messages["captcha_invalid"], code="captcha_invalid"
+                self.messages["captcha_invalid"],
+                code="captcha_invalid",
             )
 
     def _get_secret_key_from_context_or_default(self, serializer_field) -> str:
         return serializer_field.context.get(
-            "recaptcha_secret_key", self.default_recaptcha_secret_key
+            "recaptcha_secret_key",
+            self.default_recaptcha_secret_key,
         )
 
     @staticmethod
     def _get_client_ip_from_context(serializer_field):
         request = serializer_field.context.get("request")
         if not request:
-            raise ImproperlyConfigured(
-                "Couldn't get client ip address. Check your serializer gets context with request."
+            msg = (
+                "Couldn't get client ip address. "
+                "Check your serializer gets context with request."
             )
+            raise ImproperlyConfigured(msg)
 
         recaptcha_client_ip, _ = get_client_ip(request)
         return recaptcha_client_ip
 
     def _get_captcha_response_with_payload(
-        self, value: str, secret_key: str, client_ip: str
+        self,
+        value: str,
+        secret_key: str,
+        client_ip: str,
     ) -> "RecaptchaResponse":
         try:
             check_captcha = client.submit(
@@ -79,9 +86,9 @@ class ReCaptchaValidator:
                 secret_key=secret_key,
                 remoteip=client_ip,
             )
-        except HTTPError:  # Catch timeouts, etc
+        except HTTPError:  # Catch timeouts, etc.
             logger.exception("Couldn't get response, HTTPError")
-            raise ValidationError(self.messages["captcha_error"], code="captcha_error")
+            raise ValidationError(self.messages["captcha_error"], code="captcha_error")  # noqa: B904
 
         return check_captcha
 
@@ -90,12 +97,12 @@ class ReCaptchaValidator:
             return
 
         logger.error(
-            "ReCAPTCHA validation failed due to: %s", check_captcha.error_codes
+            "ReCAPTCHA validation failed due to: %s",
+            check_captcha.error_codes,
         )
         raise ValidationError(self.messages["captcha_invalid"], code="captcha_invalid")
 
-    def _process_response(self, check_captcha_response):
-        ...
+    def _process_response(self, check_captcha_response): ...
 
 
 class ReCaptchaV2Validator(ReCaptchaValidator):
@@ -108,7 +115,7 @@ class ReCaptchaV2Validator(ReCaptchaValidator):
         if score is not None:
             logger.error(
                 "The response contains score, reCAPTCHA v2 response doesn't"
-                " contains score, probably secret key for reCAPTCHA v3"
+                " contains score, probably secret key for reCAPTCHA v3",
             )
             raise ValidationError(self.messages["captcha_error"], code="captcha_error")
 
@@ -125,7 +132,7 @@ class ReCaptchaV3Validator(ReCaptchaValidator):
         if self.score is None:
             logger.error(
                 "The response not contains score, reCAPTCHA v3 response must"
-                " contains score, probably secret key for reCAPTCHA v2"
+                " contains score, probably secret key for reCAPTCHA v2",
             )
             raise ValidationError(self.messages["captcha_error"], code="captcha_error")
 
@@ -139,7 +146,8 @@ class ReCaptchaV3Validator(ReCaptchaValidator):
                 action,
             )
             raise ValidationError(
-                self.messages["captcha_invalid"], code="captcha_invalid"
+                self.messages["captcha_invalid"],
+                code="captcha_invalid",
             )
 
         if self.recaptcha_action != action:
@@ -150,5 +158,6 @@ class ReCaptchaV3Validator(ReCaptchaValidator):
                 self.recaptcha_action,
             )
             raise ValidationError(
-                self.messages["captcha_invalid"], code="captcha_invalid"
+                self.messages["captcha_invalid"],
+                code="captcha_invalid",
             )

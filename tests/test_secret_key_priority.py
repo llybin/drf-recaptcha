@@ -1,12 +1,11 @@
 import pytest
-from rest_framework.serializers import Serializer
-
 from drf_recaptcha.fields import ReCaptchaV2Field, ReCaptchaV3Field
+from rest_framework.serializers import Serializer
 
 
 @pytest.fixture(autouse=True)
 def _default_recaptcha_settings(settings):
-    settings.DRF_RECAPTCHA_SECRET_KEY = "from-default-settings"
+    settings.DRF_RECAPTCHA_SECRET_KEY = "from-default-settings"  # noqa: S105
 
 
 TEST_CASES = [
@@ -34,7 +33,8 @@ TEST_CASES = [
 
 
 @pytest.mark.parametrize(
-    ("field_params", "field_context", "expected_secret_key"), TEST_CASES
+    ("field_params", "field_context", "expected_secret_key"),
+    TEST_CASES,
 )
 def test_secret_key_priority_for_v2(
     field_params,
@@ -43,7 +43,7 @@ def test_secret_key_priority_for_v2(
     mocker,
 ):
     validator = mocker.patch(
-        "drf_recaptcha.fields.ReCaptchaV2Validator._get_captcha_response_with_payload"
+        "drf_recaptcha.fields.ReCaptchaV2Validator._get_captcha_response_with_payload",
     )
     field_context["request"] = mocker.Mock(META={"HTTP_X_FORWARDED_FOR": "4.3.2.1"})
 
@@ -61,21 +61,23 @@ def test_secret_key_priority_for_v2(
 
 
 @pytest.mark.parametrize(
-    ("field_params", "field_context", "expected_secret_key"), TEST_CASES
+    ("field_params", "field_context", "expected_secret_key"),
+    TEST_CASES,
 )
 def test_secret_key_priority_for_v3(
-    field_params, field_context, expected_secret_key, mocker
+    field_params,
+    field_context,
+    expected_secret_key,
+    mocker,
 ):
     validator = mocker.patch(
-        "drf_recaptcha.fields.ReCaptchaV3Validator._get_captcha_response_with_payload"
+        "drf_recaptcha.fields.ReCaptchaV3Validator._get_captcha_response_with_payload",
     )
     field_context["request"] = mocker.Mock(META={"HTTP_X_FORWARDED_FOR": "4.3.2.1"})
-    field_params.update(
-        {
-            "action": "some",
-            "required_score": 1,
-        }
-    )
+    field_params.update({
+        "action": "some",
+        "required_score": 1,
+    })
 
     class _Serializer(Serializer):
         recaptcha = ReCaptchaV3Field(**field_params, required=True)
