@@ -1,8 +1,7 @@
 import pytest
-from rest_framework.serializers import ValidationError
-
 from drf_recaptcha.client import RecaptchaResponse
 from drf_recaptcha.validators import ReCaptchaV2Validator, ReCaptchaV3Validator
+from rest_framework.serializers import ValidationError
 
 
 @pytest.fixture
@@ -17,17 +16,19 @@ def _drf_recaptcha_testing(settings):
             ReCaptchaV3Validator,
             {"action": "test_action", "required_score": 0.4},
             RecaptchaResponse(
-                is_valid=True, extra_data={"score": 0.6, "action": "test_action"}
+                is_valid=True,
+                extra_data={"score": 0.6, "action": "test_action"},
             ),
         ),
         (
             ReCaptchaV3Validator,
             {"action": "test_action", "required_score": 0.5},
             RecaptchaResponse(
-                is_valid=True, extra_data={"score": 0.5, "action": "test_action"}
+                is_valid=True,
+                extra_data={"score": 0.5, "action": "test_action"},
             ),
         ),
-    ]
+    ],
 )
 def validator_with_mocked_captcha_valid_response(request, mocker):
     validator_class = request.param[0]
@@ -35,10 +36,11 @@ def validator_with_mocked_captcha_valid_response(request, mocker):
     response = request.param[2]
 
     validator_with_mocked_get_response = validator_class(
-        secret_key="TEST_SECRET_KEY", **params
+        secret_key="TEST_SECRET_KEY",  # noqa: S106
+        **params,
     )
     validator_with_mocked_get_response._get_captcha_response_with_payload = mocker.Mock(
-        return_value=response
+        return_value=response,
     )
 
     return validator_with_mocked_get_response
@@ -50,7 +52,8 @@ def test_recaptcha_validator_call_success(
 ):
     try:
         validator_with_mocked_captcha_valid_response(
-            "test_token", mocked_serializer_field_with_request_context
+            "test_token",
+            mocked_serializer_field_with_request_context,
         )
     except ValidationError:
         pytest.fail("Validation is not passed")
@@ -63,47 +66,56 @@ def test_recaptcha_validator_call_success(
             ReCaptchaV2Validator,
             {},
             RecaptchaResponse(is_valid=False),
-            "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.', code='captcha_invalid')]",
+            "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
+            " code='captcha_invalid')]",
         ),
         (
             ReCaptchaV2Validator,
             {},
             RecaptchaResponse(
-                is_valid=True, extra_data={"score": 0.6, "action": "test_action"}
+                is_valid=True,
+                extra_data={"score": 0.6, "action": "test_action"},
             ),
-            "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.', code='captcha_error')]",
+            "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
+            " code='captcha_error')]",
         ),
         (
             ReCaptchaV3Validator,
             {"action": "test_action", "required_score": 0.4},
             RecaptchaResponse(is_valid=False),
-            "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.', code='captcha_invalid')]",
+            "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
+            " code='captcha_invalid')]",
         ),
         (
             ReCaptchaV3Validator,
             {"action": "test_action", "required_score": 0.4},
             RecaptchaResponse(is_valid=True),
-            "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.', code='captcha_error')]",
+            "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
+            " code='captcha_error')]",
         ),
         (
             ReCaptchaV3Validator,
             {"action": "test_action", "required_score": 0.4},
             RecaptchaResponse(is_valid=True, extra_data={"score": 0.3}),
-            "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.', code='captcha_invalid')]",
+            "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
+            " code='captcha_invalid')]",
         ),
         (
             ReCaptchaV3Validator,
             {"action": "test_action", "required_score": 0.4},
             RecaptchaResponse(is_valid=True, extra_data={"score": 0.5}),
-            "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.', code='captcha_invalid')]",
+            "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
+            " code='captcha_invalid')]",
         ),
         (
             ReCaptchaV3Validator,
             {"action": "test_action", "required_score": 0.4},
             RecaptchaResponse(
-                is_valid=True, extra_data={"score": 0.5, "action": "other_action"}
+                is_valid=True,
+                extra_data={"score": 0.5, "action": "other_action"},
             ),
-            "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.', code='captcha_invalid')]",
+            "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
+            " code='captcha_invalid')]",
         ),
     ],
 )
@@ -115,7 +127,7 @@ def test_recaptcha_validator_call_fail(
     mocked_serializer_field_with_request_context,
     mocker,
 ):
-    validator = validator_class(secret_key="TEST_SECRET_KEY", **params)
+    validator = validator_class(secret_key="TEST_SECRET_KEY", **params)  # noqa: S106
     validator._get_captcha_response_with_payload = mocker.Mock(return_value=response)
 
     with pytest.raises(ValidationError) as exc_info:
@@ -129,11 +141,12 @@ def test_recaptcha_validator_get_response_called_with_correct_ip(
     mocked_serializer_field_with_request_context,
 ):
     validator_with_mocked_captcha_valid_response(
-        "test_token", mocked_serializer_field_with_request_context
+        "test_token",
+        mocked_serializer_field_with_request_context,
     )
 
     validator_with_mocked_captcha_valid_response._get_captcha_response_with_payload.assert_called_once_with(
-        secret_key="TEST_SECRET_KEY",
+        secret_key="TEST_SECRET_KEY",  # noqa: S106
         client_ip="4.3.2.1",
         value="test_token",
     )
@@ -145,11 +158,12 @@ def test_recaptcha_validator_takes_secret_key_from_context(
     mocker,
 ):
     validator_with_mocked_captcha_valid_response(
-        "test_token", mocked_serializer_field_with_request_secret_key_context
+        "test_token",
+        mocked_serializer_field_with_request_secret_key_context,
     )
 
     validator_with_mocked_captcha_valid_response._get_captcha_response_with_payload.assert_called_once_with(
-        secret_key="from-context",
+        secret_key="from-context",  # noqa: S106
         client_ip=mocker.ANY,
         value="test_token",
     )

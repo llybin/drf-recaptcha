@@ -1,11 +1,10 @@
 from django.conf import settings
-from django.core.checks import Tags, Error, Warning, register
-from django.core.exceptions import ImproperlyConfigured
+from django.core import checks
 
 from drf_recaptcha.constants import TEST_V2_SECRET_KEY
 
 
-@register(Tags.security)
+@checks.register(checks.Tags.security)
 def recaptcha_system_check(app_configs, **kwargs):
     errors = []
 
@@ -16,18 +15,18 @@ def recaptcha_system_check(app_configs, **kwargs):
     secret_key = getattr(settings, "DRF_RECAPTCHA_SECRET_KEY", None)
     if not secret_key:
         errors.append(
-            Error("settings.DRF_RECAPTCHA_SECRET_KEY must be set."),
+            checks.Error("settings.DRF_RECAPTCHA_SECRET_KEY must be set."),
         )
 
     elif secret_key == TEST_V2_SECRET_KEY:
         errors.append(
-            Warning(
+            checks.Warning(
                 "Google test key for reCAPTCHA v2 is used now.\n"
                 "If you use reCAPTCHA v2 - you will always get No CAPTCHA and all"
                 " verification requests will pass.\n"
                 "If you use reCAPTCHA v3 - all verification requests will fail.",
                 hint="Update settings.DRF_RECAPTCHA_SECRET_KEY",
                 id="drf_recaptcha.recaptcha_test_key_error",
-            )
+            ),
         )
     return errors

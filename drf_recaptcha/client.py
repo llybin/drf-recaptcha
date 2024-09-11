@@ -16,8 +16,9 @@ class RecaptchaResponse:
 
 def recaptcha_request(params):
     request_object = Request(
-        url="https://%s/recaptcha/api/siteverify"
-        % getattr(settings, "DRF_RECAPTCHA_DOMAIN", DEFAULT_RECAPTCHA_DOMAIN),
+        url="https://{}/recaptcha/api/siteverify".format(
+            getattr(settings, "DRF_RECAPTCHA_DOMAIN", DEFAULT_RECAPTCHA_DOMAIN)
+        ),
         data=params,
         headers={
             "Content-type": "application/x-www-form-urlencoded",
@@ -40,9 +41,11 @@ def recaptcha_request(params):
 
 
 def submit(recaptcha_response, secret_key, remoteip):
-    params = urlencode(
-        {"secret": secret_key, "response": recaptcha_response, "remoteip": remoteip}
-    )
+    params = urlencode({
+        "secret": secret_key,
+        "response": recaptcha_response,
+        "remoteip": remoteip,
+    })
 
     params = params.encode("utf-8")
 

@@ -3,16 +3,36 @@
 root = true
 
 [*]
+charset = utf-8
+end_of_line = lf
 indent_style = space
 indent_size = 4
 insert_final_newline = true
 trim_trailing_whitespace = true
-end_of_line = lf
-charset = utf-8
 
 # Docstrings and comments use max_line_length = 119
 [*.py]
 max_line_length = 119
+
+# Use 2 spaces for frontend files
+[{*.html,*.js,*.css}]
+indent_size = 2
+
+[{*.yml,*.yaml}]
+indent_size = 2
+
+# The JSON files contain newlines inconsistently
+[*.json]
+indent_size = 2
+insert_final_newline = false
+
+# Minified JavaScript files shouldn't be changed
+[**.min.js]
+insert_final_newline = false
+
+# Batch files use tabs for indentation
+[{*.bat,*.sh,Dockerfile}]
+indent_style = tab
 
 [*.md]
 trim_trailing_whitespace = false
