@@ -41,10 +41,10 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.10"
-django = "^4.2"
-djangorestframework = "^3.14"
-django-ipware = "^5.0.2"
+python = ">=3.10"
+django = ">=4.2"
+djangorestframework = ">=3.14"
+django-ipware = ">=5.0"
 
 [tool.poetry.dev-dependencies]
 coverage = { version = "*", extras = ["toml"] }
