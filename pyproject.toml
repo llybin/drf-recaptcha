@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "drf-recaptcha"
-version = "4.0.1"
+version = "4.0.2"
 description = "Django rest framework recaptcha field serializer"
 authors = ["Lev Lybin <lev.lybin@gmail.com>"]
 license = "MIT"
@@ -41,10 +41,10 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.10"
-django = "^4.2"
-djangorestframework = "^3.14"
-django-ipware = "^5.0.2"
+python = ">=3.10"
+django = ">=4.2"
+djangorestframework = ">=3.14"
+django-ipware = ">=5.0"
 
 [tool.poetry.dev-dependencies]
 coverage = { version = "*", extras = ["toml"] }
