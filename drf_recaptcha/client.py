@@ -41,11 +41,13 @@ def recaptcha_request(params):
 
 
 def submit(recaptcha_response, secret_key, remoteip):
-    params = urlencode({
-        "secret": secret_key,
-        "response": recaptcha_response,
-        "remoteip": remoteip,
-    })
+    params = urlencode(
+        {
+            "secret": secret_key,
+            "response": recaptcha_response,
+            "remoteip": remoteip,
+        }
+    )
 
     params = params.encode("utf-8")
 
