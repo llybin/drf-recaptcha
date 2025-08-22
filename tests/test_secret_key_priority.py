@@ -74,10 +74,12 @@ def test_secret_key_priority_for_v3(
         "drf_recaptcha.fields.ReCaptchaV3Validator._get_captcha_response_with_payload",
     )
     field_context["request"] = mocker.Mock(META={"HTTP_X_FORWARDED_FOR": "4.3.2.1"})
-    field_params.update({
-        "action": "some",
-        "required_score": 1,
-    })
+    field_params.update(
+        {
+            "action": "some",
+            "required_score": 1,
+        }
+    )
 
     class _Serializer(Serializer):
         recaptcha = ReCaptchaV3Field(**field_params, required=True)
