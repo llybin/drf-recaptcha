@@ -15,14 +15,22 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+def get_credential_from_settings(setting_name: str) -> str:
+    # Unset and blank mean the same here: an environment variable nobody set
+    # usually reaches settings as an empty string, and neither value can
+    # authenticate a verification request.
+    return getattr(settings, setting_name, "") or ""
+
+
 class ReCaptchaValidator:
     requires_context = True
 
     messages = {
         "captcha_invalid": "Error verifying reCAPTCHA, please try again.",
         "captcha_error": "Error verifying reCAPTCHA, please try again.",
+        "captcha_unconfigured": "Error verifying reCAPTCHA, please try again.",
     }
-    default_recaptcha_secret_key = ""
+    default_recaptcha_secret_key = None
 
     def __call__(self, value, serializer_field):
         if self._is_testing():
@@ -33,6 +41,8 @@ class ReCaptchaValidator:
         recaptcha_secret_key = self._get_secret_key_from_context_or_default(
             serializer_field,
         )
+
+        self._validate_is_configured(recaptcha_secret_key)
 
         check_captcha = self._get_captcha_response_with_payload(
             value=value,
@@ -56,9 +66,34 @@ class ReCaptchaValidator:
             )
 
     def _get_secret_key_from_context_or_default(self, serializer_field) -> str:
-        return serializer_field.context.get(
-            "recaptcha_secret_key",
-            self.default_recaptcha_secret_key,
+        return (
+            serializer_field.context.get("recaptcha_secret_key")
+            or self.default_recaptcha_secret_key
+            or get_credential_from_settings("DRF_RECAPTCHA_SECRET_KEY")
+        )
+
+    def _get_missing_credentials(self, secret_key: str) -> list[str]:
+        return [] if secret_key else ["DRF_RECAPTCHA_SECRET_KEY"]
+
+    def _validate_is_configured(self, secret_key: str) -> None:
+        # Rejected rather than accepted, because the alternative is taking
+        # tokens nobody verified. Rejected rather than raised on, so a
+        # deployment missing a credential loses the submissions its captcha
+        # guards and keeps serving everything else.
+        missing = self._get_missing_credentials(secret_key)
+        if not missing:
+            return
+
+        logger.error(
+            "reCAPTCHA is not configured: %s not set, so a token cannot be"
+            " verified and the submission is rejected.",
+            ", ".join(f"settings.{setting}" for setting in missing),
+        )
+        raise ValidationError(
+            self.messages["captcha_unconfigured"],
+            # The code of a failed verification, so a client that resets the
+            # widget on it can retry once the credential is in place.
+            code="captcha_error",
         )
 
     @staticmethod
@@ -193,8 +228,8 @@ class ReCaptchaEnterpriseValidator(ReCaptchaV3Validator):
         action,
         required_score,
         secret_key,
-        project_id,
-        site_key,
+        project_id=None,
+        site_key=None,
     ):
         super().__init__(
             action=action,
@@ -203,6 +238,28 @@ class ReCaptchaEnterpriseValidator(ReCaptchaV3Validator):
         )
         self.recaptcha_project_id = project_id
         self.recaptcha_site_key = site_key
+
+    def _get_project_id(self) -> str:
+        return self.recaptcha_project_id or get_credential_from_settings(
+            "DRF_RECAPTCHA_ENTERPRISE_PROJECT_ID",
+        )
+
+    def _get_site_key(self) -> str:
+        return self.recaptcha_site_key or get_credential_from_settings(
+            "DRF_RECAPTCHA_ENTERPRISE_SITE_KEY",
+        )
+
+    def _get_missing_credentials(self, secret_key: str) -> list[str]:
+        # An assessment needs all three, so one of them missing is as good as
+        # none of them set.
+        return super()._get_missing_credentials(secret_key) + [
+            setting
+            for setting, value in (
+                ("DRF_RECAPTCHA_ENTERPRISE_PROJECT_ID", self._get_project_id()),
+                ("DRF_RECAPTCHA_ENTERPRISE_SITE_KEY", self._get_site_key()),
+            )
+            if not value
+        ]
 
     def _submit(
         self,
@@ -213,8 +270,8 @@ class ReCaptchaEnterpriseValidator(ReCaptchaV3Validator):
         return client.submit_enterprise(
             recaptcha_response=value,
             api_key=secret_key,
-            project_id=self.recaptcha_project_id,
-            site_key=self.recaptcha_site_key,
+            project_id=self._get_project_id(),
+            site_key=self._get_site_key(),
             expected_action=self.recaptcha_action,
             remoteip=client_ip,
         )

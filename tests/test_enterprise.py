@@ -1,7 +1,6 @@
 import json
 
 import pytest
-from django.core.exceptions import ImproperlyConfigured
 from drf_recaptcha import client
 from drf_recaptcha.client import RecaptchaResponse, submit_enterprise
 from drf_recaptcha.fields import ReCaptchaEnterpriseField
@@ -303,22 +302,20 @@ def test_enterprise_field_score_priority(params, from_settings, expected, settin
 
 
 @pytest.mark.parametrize(
-    ("setting_name", "argument_name"),
+    "setting_name",
     [
-        ("DRF_RECAPTCHA_ENTERPRISE_PROJECT_ID", "project_id"),
-        ("DRF_RECAPTCHA_ENTERPRISE_SITE_KEY", "site_key"),
+        "DRF_RECAPTCHA_SECRET_KEY",
+        "DRF_RECAPTCHA_ENTERPRISE_PROJECT_ID",
+        "DRF_RECAPTCHA_ENTERPRISE_SITE_KEY",
     ],
 )
-def test_enterprise_field_improperly_configured(setting_name, argument_name, settings):
+def test_enterprise_field_is_built_without_settings(setting_name, settings):
+    """A serializer declaring the field still imports, see test_unconfigured.py."""
     setattr(settings, setting_name, None)
 
-    with pytest.raises(ImproperlyConfigured) as exc_info:
-        ReCaptchaEnterpriseField(action="test_action")
+    field = ReCaptchaEnterpriseField(action="test_action")
 
-    assert str(exc_info.value) == (
-        f"You must set the argument `{argument_name}` of the field"
-        f" or settings.{setting_name} to use reCAPTCHA Enterprise."
-    )
+    assert isinstance(field.validators[-1], ReCaptchaEnterpriseValidator)
 
 
 def test_enterprise_field_arguments_take_priority_over_settings():
@@ -333,6 +330,31 @@ def test_enterprise_field_arguments_take_priority_over_settings():
     assert validator.default_recaptcha_secret_key == "from-field-secret-key"  # noqa: S105
     assert validator.recaptcha_project_id == "from-field-project"
     assert validator.recaptcha_site_key == "from-field-site-key"
+
+
+def test_enterprise_credentials_from_the_field_need_no_settings(mocker, settings):
+    """The unconfigured guard reads what the field resolves, not the settings."""
+    settings.DRF_RECAPTCHA_SECRET_KEY = ""
+    settings.DRF_RECAPTCHA_ENTERPRISE_PROJECT_ID = ""
+    settings.DRF_RECAPTCHA_ENTERPRISE_SITE_KEY = ""
+    mocked_enterprise_request(
+        mocker,
+        {"tokenProperties": {"valid": True}, "riskAnalysis": {"score": 0.9}},
+    )
+
+    class _Serializer(Serializer):
+        recaptcha = ReCaptchaEnterpriseField(
+            secret_key="from-field-secret-key",  # noqa: S106
+            project_id="from-field-project",
+            site_key="from-field-site-key",
+        )
+
+    serializer = _Serializer(
+        data={"recaptcha": "test_token"},
+        context={"request": mocker.Mock(META={"HTTP_X_FORWARDED_FOR": "4.3.2.1"})},
+    )
+
+    assert serializer.is_valid() is True
 
 
 @pytest.mark.parametrize(

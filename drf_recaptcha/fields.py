@@ -11,14 +11,17 @@ from drf_recaptcha.validators import (
     ReCaptchaV3Validator,
 )
 
+# The fields below leave the credentials they are not given as arguments to the
+# validator, which reads them from settings when it runs. Building a field
+# touches no setting, so what a missing credential costs is decided per request,
+# in `ReCaptchaValidator._validate_is_configured`.
+
 
 class ReCaptchaV2Field(CharField):
     def __init__(self, secret_key: str | None = None, **kwargs):
         super().__init__(**kwargs)
 
         self.write_only = True
-
-        secret_key = secret_key or settings.DRF_RECAPTCHA_SECRET_KEY
 
         validator = ReCaptchaV2Validator(secret_key=secret_key)
         self.validators.append(validator)
@@ -125,27 +128,12 @@ class ReCaptchaV3Field(ScoreFieldMixin, CharField):
 
         self.required_score = get_required_score(action, required_score)
 
-        secret_key = secret_key or settings.DRF_RECAPTCHA_SECRET_KEY
-
         self._validator = ReCaptchaV3Validator(
             action=action,
             required_score=self.required_score,
             secret_key=secret_key,
         )
         self.validators.append(self._validator)
-
-
-def get_enterprise_setting(setting_name: str, argument_name: str) -> str:
-    value = getattr(settings, setting_name, None)
-
-    if not value:
-        message = (
-            f"You must set the argument `{argument_name}` of the field"
-            f" or settings.{setting_name} to use reCAPTCHA Enterprise."
-        )
-        raise ImproperlyConfigured(message)
-
-    return value
 
 
 class ReCaptchaEnterpriseField(ScoreFieldMixin, CharField):
@@ -165,16 +153,6 @@ class ReCaptchaEnterpriseField(ScoreFieldMixin, CharField):
         self.write_only = True
 
         self.required_score = get_required_score(action, required_score)
-
-        secret_key = secret_key or settings.DRF_RECAPTCHA_SECRET_KEY
-        project_id = project_id or get_enterprise_setting(
-            "DRF_RECAPTCHA_ENTERPRISE_PROJECT_ID",
-            "project_id",
-        )
-        site_key = site_key or get_enterprise_setting(
-            "DRF_RECAPTCHA_ENTERPRISE_SITE_KEY",
-            "site_key",
-        )
 
         self._validator = ReCaptchaEnterpriseValidator(
             action=action,

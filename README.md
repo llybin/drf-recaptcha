@@ -169,12 +169,33 @@ class EnterpriseCheckboxSerializer(Serializer):
 2. the argument `secret_key` of field
 3. request.context["recaptcha_secret_key"]
 
-### Silence the check error
+### Missing credentials
 
-If you need to disable the error, you can do so using the django settings.
+Serializers declare their fields at import time, so credentials taken from settings are read when a field validates
+rather than when it is built. A deployment missing one still starts, and a
+[system check](https://docs.djangoproject.com/en/stable/topics/checks/) warns which setting it is:
+
+```
+?: (drf_recaptcha.W001) settings.DRF_RECAPTCHA_SECRET_KEY not set, so reCAPTCHA cannot verify a
+token and every field will reject its submission.
+```
+
+The submission is rejected rather than accepted, because the alternative is taking tokens nobody verified. The error is
+`ValidationError` with the code `captcha_error`, the same as a verification that failed, and the message of
+`captcha_unconfigured`, which does not name the missing setting — that goes to the log at `ERROR` instead.
+
+An unset environment variable usually reaches settings as an empty string, so a blank credential means the same as no
+credential at all.
+
+### Silence the checks
+
+If you need to disable the warnings, you can do so using the django settings.
 
 ```python
-SILENCED_SYSTEM_CHECKS = ['drf_recaptcha.checks.recaptcha_system_check']
+SILENCED_SYSTEM_CHECKS = [
+    'drf_recaptcha.W001',  # missing credentials
+    'drf_recaptcha.recaptcha_test_key_error',  # Google test key in use
+]
 ```
 
 ## reCAPTCHA v3
@@ -211,6 +232,9 @@ The API key is the credential of the field, so it follows the [priority of secre
 Validation is passed if the token is valid and the score value returned by Google is greater than or equal to required score, with the same [priority of score value](#priority-of-score-value) as reCAPTCHA v3.
 
 The argument `action` is optional, define it for score based site keys to check the action of the token, leave it unset for checkbox site keys because they are not bound to an action.
+
+An assessment needs all three credentials, so defining either Enterprise setting is what tells the system check to report
+a [missing](#missing-credentials) project id or site key as well.
 
 ## Testing
 
