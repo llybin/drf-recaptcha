@@ -76,9 +76,11 @@ class V3WithScoreSerializer(Serializer):
 
 class GetReCaptchaScore(APIView):
     def post(self, request):
-        serializer = V3WithScoreSerializer(data=request.data, context={"request": request})
+        serializer = V3WithScoreSerializer(
+            data=request.data, context={"request": request}
+        )
         serializer.is_valid()
-        score = serializer.fields['recaptcha'].score
+        score = serializer.fields["recaptcha"].score
         ...
 
 
@@ -193,8 +195,8 @@ If you need to disable the warnings, you can do so using the django settings.
 
 ```python
 SILENCED_SYSTEM_CHECKS = [
-    'drf_recaptcha.W001',  # missing credentials
-    'drf_recaptcha.recaptcha_test_key_error',  # Google test key in use
+    "drf_recaptcha.W001",  # missing credentials
+    "drf_recaptcha.recaptcha_test_key_error",  # Google test key in use
 ]
 ```
 

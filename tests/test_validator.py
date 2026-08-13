@@ -66,8 +66,10 @@ def test_recaptcha_validator_call_success(
             ReCaptchaV2Validator,
             {},
             RecaptchaResponse(is_valid=False),
-            "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
-            " code='captcha_invalid')]",
+            (
+                "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
+                " code='captcha_invalid')]"
+            ),
         ),
         (
             ReCaptchaV2Validator,
@@ -76,36 +78,46 @@ def test_recaptcha_validator_call_success(
                 is_valid=True,
                 extra_data={"score": 0.6, "action": "test_action"},
             ),
-            "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
-            " code='captcha_error')]",
+            (
+                "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
+                " code='captcha_error')]"
+            ),
         ),
         (
             ReCaptchaV3Validator,
             {"action": "test_action", "required_score": 0.4},
             RecaptchaResponse(is_valid=False),
-            "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
-            " code='captcha_invalid')]",
+            (
+                "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
+                " code='captcha_invalid')]"
+            ),
         ),
         (
             ReCaptchaV3Validator,
             {"action": "test_action", "required_score": 0.4},
             RecaptchaResponse(is_valid=True),
-            "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
-            " code='captcha_error')]",
+            (
+                "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
+                " code='captcha_error')]"
+            ),
         ),
         (
             ReCaptchaV3Validator,
             {"action": "test_action", "required_score": 0.4},
             RecaptchaResponse(is_valid=True, extra_data={"score": 0.3}),
-            "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
-            " code='captcha_invalid')]",
+            (
+                "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
+                " code='captcha_invalid')]"
+            ),
         ),
         (
             ReCaptchaV3Validator,
             {"action": "test_action", "required_score": 0.4},
             RecaptchaResponse(is_valid=True, extra_data={"score": 0.5}),
-            "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
-            " code='captcha_invalid')]",
+            (
+                "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
+                " code='captcha_invalid')]"
+            ),
         ),
         (
             ReCaptchaV3Validator,
@@ -114,8 +126,10 @@ def test_recaptcha_validator_call_success(
                 is_valid=True,
                 extra_data={"score": 0.5, "action": "other_action"},
             ),
-            "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
-            " code='captcha_invalid')]",
+            (
+                "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
+                " code='captcha_invalid')]"
+            ),
         ),
     ],
 )

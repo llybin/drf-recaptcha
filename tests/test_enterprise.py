@@ -190,14 +190,18 @@ def test_enterprise_validator_call_success(
         (
             {"action": "test_action", "required_score": 0.4},
             RecaptchaResponse(is_valid=False, error_codes=["EXPIRED"]),
-            "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
-            " code='captcha_invalid')]",
+            (
+                "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
+                " code='captcha_invalid')]"
+            ),
         ),
         (
             {"action": "test_action", "required_score": 0.4},
             RecaptchaResponse(is_valid=True, extra_data={"score": None}),
-            "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
-            " code='captcha_error')]",
+            (
+                "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
+                " code='captcha_error')]"
+            ),
         ),
         (
             {"action": "test_action", "required_score": 0.4},
@@ -205,8 +209,10 @@ def test_enterprise_validator_call_success(
                 is_valid=True,
                 extra_data={"score": 0.3, "action": "test_action"},
             ),
-            "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
-            " code='captcha_invalid')]",
+            (
+                "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
+                " code='captcha_invalid')]"
+            ),
         ),
         (
             {"action": "test_action", "required_score": 0.4},
@@ -214,8 +220,10 @@ def test_enterprise_validator_call_success(
                 is_valid=True,
                 extra_data={"score": 0.6, "action": "other_action"},
             ),
-            "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
-            " code='captcha_invalid')]",
+            (
+                "[ErrorDetail(string='Error verifying reCAPTCHA, please try again.',"
+                " code='captcha_invalid')]"
+            ),
         ),
     ],
 )

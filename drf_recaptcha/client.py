@@ -88,6 +88,7 @@ def submit(recaptcha_response, secret_key, remoteip):
 
 
 def submit_enterprise(  # noqa: PLR0913
+    *,
     recaptcha_response,
     api_key,
     project_id,
