@@ -14,6 +14,29 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+# Enough for the error documents these APIs answer with, and a bound on what a
+# rejected request can write to the log.
+ERROR_BODY_LOG_LIMIT = 2000
+
+
+def read_error_body(error: HTTPError) -> str:
+    """What the response to a refused verification request says.
+
+    Worth the trouble because the status line alone rarely identifies the fault:
+    the Enterprise API answers a mismatched project and API key with a 400 whose
+    body carries `RESOURCE_PROJECT_INVALID`, and that distinction is the
+    difference between a misconfigured deployment and an outage. `HTTPError` is
+    itself a file object, so the body is readable here and nowhere later.
+    """
+    try:
+        body = error.read(ERROR_BODY_LOG_LIMIT)
+    except (OSError, ValueError):
+        # A body that cannot be read is not worth failing over — the caller is
+        # already on its way to rejecting the submission.
+        return "<unreadable>"
+
+    return body.decode("utf-8", errors="replace") if body else "<empty>"
+
 
 def get_credential_from_settings(setting_name: str) -> str:
     # Unset and blank mean the same here: an environment variable nobody set
@@ -121,8 +144,9 @@ class ReCaptchaValidator:
                 secret_key=secret_key,
                 client_ip=client_ip,
             )
-        except HTTPError:  # Catch timeouts, etc.
-            logger.exception("Couldn't get response, HTTPError")
+        except HTTPError as error:  # Catch timeouts, etc.
+            body = read_error_body(error)
+            logger.exception("Couldn't get response, HTTPError: %s", body)
             raise ValidationError(self.messages["captcha_error"], code="captcha_error")  # noqa: B904
 
         return check_captcha

@@ -31,6 +31,10 @@ In the future, it will be updated to follow the standard described above.
   it no longer fails every management command that runs checks, `migrate` included. The
   check messages carry ids, `drf_recaptcha.W001` for missing credentials, so
   `SILENCED_SYSTEM_CHECKS` can reach them.
+- An `HTTPError` from a verification request is logged with the response body, bounded to
+  2000 characters, rather than the status line alone. The Enterprise API distinguishes a
+  site key from another project, a project the API key cannot use, and a disabled API only
+  in that body, so without it every one of them reports as `HTTP Error 400: Bad Request`.
 
 ### Removed
 
