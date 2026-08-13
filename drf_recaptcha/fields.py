@@ -5,7 +5,11 @@ from django.core.exceptions import ImproperlyConfigured
 from rest_framework.serializers import CharField
 
 from drf_recaptcha.constants import DEFAULT_V3_SCORE
-from drf_recaptcha.validators import ReCaptchaV2Validator, ReCaptchaV3Validator
+from drf_recaptcha.validators import (
+    ReCaptchaEnterpriseValidator,
+    ReCaptchaV2Validator,
+    ReCaptchaV3Validator,
+)
 
 
 class ReCaptchaV2Field(CharField):
@@ -69,7 +73,45 @@ def get_v3_default_score_from_settings() -> int or float or None:
     return default_score_from_settings
 
 
-class ReCaptchaV3Field(CharField):
+def get_required_score(
+    action: str | None,
+    required_score: int or float or None,
+) -> int or float:
+    action_score_from_settings = get_v3_action_score_from_settings(action)
+    default_score_from_settings = get_v3_default_score_from_settings()
+    validate_v3_settings_score_value(required_score, action)
+
+    return (
+        action_score_from_settings
+        if action_score_from_settings is not None
+        else (
+            required_score
+            if required_score is not None
+            else (
+                default_score_from_settings
+                if default_score_from_settings is not None
+                else DEFAULT_V3_SCORE
+            )
+        )
+    )
+
+
+class ScoreFieldMixin:
+    _validator: ReCaptchaV3Validator
+
+    @property
+    def score(self):
+        score = self._validator.score
+        if score is None:
+            msg = (
+                "You must call the serializer `.is_valid()` method before "
+                "attempting to access the `.score` property of this field."
+            )
+            raise AssertionError(msg)
+        return score
+
+
+class ReCaptchaV3Field(ScoreFieldMixin, CharField):
     def __init__(
         self,
         action: str,
@@ -81,40 +123,64 @@ class ReCaptchaV3Field(CharField):
 
         self.write_only = True
 
-        action_score_from_settings = get_v3_action_score_from_settings(action)
-        default_score_from_settings = get_v3_default_score_from_settings()
-        validate_v3_settings_score_value(required_score, action)
-
-        self.required_score = (
-            action_score_from_settings
-            if action_score_from_settings is not None
-            else (
-                required_score
-                if required_score is not None
-                else (
-                    default_score_from_settings
-                    if default_score_from_settings is not None
-                    else DEFAULT_V3_SCORE
-                )
-            )
-        )
+        self.required_score = get_required_score(action, required_score)
 
         secret_key = secret_key or settings.DRF_RECAPTCHA_SECRET_KEY
 
-        self.__validator = ReCaptchaV3Validator(
+        self._validator = ReCaptchaV3Validator(
             action=action,
             required_score=self.required_score,
             secret_key=secret_key,
         )
-        self.validators.append(self.__validator)
+        self.validators.append(self._validator)
 
-    @property
-    def score(self):
-        score = self.__validator.score
-        if score is None:
-            msg = (
-                "You must call the serializer `.is_valid()` method before "
-                "attempting to access the `.score` property of this field."
-            )
-            raise AssertionError(msg)
-        return score
+
+def get_enterprise_setting(setting_name: str, argument_name: str) -> str:
+    value = getattr(settings, setting_name, None)
+
+    if not value:
+        message = (
+            f"You must set the argument `{argument_name}` of the field"
+            f" or settings.{setting_name} to use reCAPTCHA Enterprise."
+        )
+        raise ImproperlyConfigured(message)
+
+    return value
+
+
+class ReCaptchaEnterpriseField(ScoreFieldMixin, CharField):
+    # `secret_key` is the Google Cloud API key of the assessment request,
+    # `action` is unset for checkbox site keys, they are not bound to an action.
+    def __init__(
+        self,
+        action: str | None = None,
+        required_score: float | None = None,
+        secret_key: str | None = None,
+        project_id: str | None = None,
+        site_key: str | None = None,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+
+        self.write_only = True
+
+        self.required_score = get_required_score(action, required_score)
+
+        secret_key = secret_key or settings.DRF_RECAPTCHA_SECRET_KEY
+        project_id = project_id or get_enterprise_setting(
+            "DRF_RECAPTCHA_ENTERPRISE_PROJECT_ID",
+            "project_id",
+        )
+        site_key = site_key or get_enterprise_setting(
+            "DRF_RECAPTCHA_ENTERPRISE_SITE_KEY",
+            "site_key",
+        )
+
+        self._validator = ReCaptchaEnterpriseValidator(
+            action=action,
+            required_score=self.required_score,
+            secret_key=secret_key,
+            project_id=project_id,
+            site_key=site_key,
+        )
+        self.validators.append(self._validator)

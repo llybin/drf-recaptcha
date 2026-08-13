@@ -81,16 +81,28 @@ class ReCaptchaValidator:
         client_ip: str,
     ) -> "RecaptchaResponse":
         try:
-            check_captcha = client.submit(
-                recaptcha_response=value,
+            check_captcha = self._submit(
+                value=value,
                 secret_key=secret_key,
-                remoteip=client_ip,
+                client_ip=client_ip,
             )
         except HTTPError:  # Catch timeouts, etc.
             logger.exception("Couldn't get response, HTTPError")
             raise ValidationError(self.messages["captcha_error"], code="captcha_error")  # noqa: B904
 
         return check_captcha
+
+    def _submit(
+        self,
+        value: str,
+        secret_key: str,
+        client_ip: str,
+    ) -> "RecaptchaResponse":
+        return client.submit(
+            recaptcha_response=value,
+            secret_key=secret_key,
+            remoteip=client_ip,
+        )
 
     def _pre_validate_response(self, check_captcha: "RecaptchaResponse") -> None:
         if check_captcha.is_valid:
@@ -121,6 +133,11 @@ class ReCaptchaV2Validator(ReCaptchaValidator):
 
 
 class ReCaptchaV3Validator(ReCaptchaValidator):
+    score_missing_message = (
+        "The response not contains score, reCAPTCHA v3 response must"
+        " contains score, probably secret key for reCAPTCHA v2"
+    )
+
     def __init__(self, action, required_score, secret_key):
         self.recaptcha_action = action
         self.recaptcha_required_score = required_score
@@ -128,27 +145,29 @@ class ReCaptchaV3Validator(ReCaptchaValidator):
         self.default_recaptcha_secret_key = secret_key
 
     def _process_response(self, check_captcha_response):
+        self._validate_score(check_captcha_response)
+        self._validate_action(check_captcha_response)
+
+    def _validate_score(self, check_captcha_response):
         self.score = check_captcha_response.extra_data.get("score", None)
         if self.score is None:
-            logger.error(
-                "The response not contains score, reCAPTCHA v3 response must"
-                " contains score, probably secret key for reCAPTCHA v2",
-            )
+            logger.error(self.score_missing_message)
             raise ValidationError(self.messages["captcha_error"], code="captcha_error")
-
-        action = check_captcha_response.extra_data.get("action", "")
 
         if self.recaptcha_required_score > float(self.score):
             logger.info(
                 "ReCAPTCHA validation failed due to score of %s"
                 " being lower than the required amount for action '%s'.",
                 self.score,
-                action,
+                check_captcha_response.extra_data.get("action", ""),
             )
             raise ValidationError(
                 self.messages["captcha_invalid"],
                 code="captcha_invalid",
             )
+
+    def _validate_action(self, check_captcha_response):
+        action = check_captcha_response.extra_data.get("action", "")
 
         if self.recaptcha_action != action:
             logger.warning(
@@ -161,3 +180,48 @@ class ReCaptchaV3Validator(ReCaptchaValidator):
                 self.messages["captcha_invalid"],
                 code="captcha_invalid",
             )
+
+
+class ReCaptchaEnterpriseValidator(ReCaptchaV3Validator):
+    score_missing_message = (
+        "The assessment doesn't contain a risk analysis score, check that the"
+        " site key is a reCAPTCHA Enterprise key of the given project"
+    )
+
+    def __init__(
+        self,
+        action,
+        required_score,
+        secret_key,
+        project_id,
+        site_key,
+    ):
+        super().__init__(
+            action=action,
+            required_score=required_score,
+            secret_key=secret_key,
+        )
+        self.recaptcha_project_id = project_id
+        self.recaptcha_site_key = site_key
+
+    def _submit(
+        self,
+        value: str,
+        secret_key: str,
+        client_ip: str,
+    ) -> "RecaptchaResponse":
+        return client.submit_enterprise(
+            recaptcha_response=value,
+            api_key=secret_key,
+            project_id=self.recaptcha_project_id,
+            site_key=self.recaptcha_site_key,
+            expected_action=self.recaptcha_action,
+            remoteip=client_ip,
+        )
+
+    def _process_response(self, check_captcha_response):
+        self._validate_score(check_captcha_response)
+
+        # Checkbox site keys are not bound to an action.
+        if self.recaptcha_action is not None:
+            self._validate_action(check_captcha_response)

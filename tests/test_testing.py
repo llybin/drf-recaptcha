@@ -1,5 +1,9 @@
 import pytest
-from drf_recaptcha.validators import ReCaptchaV2Validator, ReCaptchaV3Validator
+from drf_recaptcha.validators import (
+    ReCaptchaEnterpriseValidator,
+    ReCaptchaV2Validator,
+    ReCaptchaV3Validator,
+)
 from rest_framework.exceptions import ValidationError
 
 
@@ -8,6 +12,15 @@ from rest_framework.exceptions import ValidationError
     [
         (ReCaptchaV2Validator, {}),
         (ReCaptchaV3Validator, {"action": "test_action", "required_score": 0.4}),
+        (
+            ReCaptchaEnterpriseValidator,
+            {
+                "action": "test_action",
+                "required_score": 0.4,
+                "project_id": "test-project",
+                "site_key": "TEST_SITE_KEY",
+            },
+        ),
     ],
 )
 def test_recaptcha_validator_testing_success(
@@ -30,6 +43,15 @@ def test_recaptcha_validator_testing_success(
     [
         (ReCaptchaV2Validator, {}),
         (ReCaptchaV3Validator, {"action": "test_action", "required_score": 0.4}),
+        (
+            ReCaptchaEnterpriseValidator,
+            {
+                "action": "test_action",
+                "required_score": 0.4,
+                "project_id": "test-project",
+                "site_key": "TEST_SITE_KEY",
+            },
+        ),
     ],
 )
 def test_recaptcha_validator_testing_fail(
