@@ -1,6 +1,6 @@
 # Django REST reCAPTCHA
 
-**Django REST reCAPTCHA v2 and v3 field serializer**
+**Django REST reCAPTCHA v2, v3 and Enterprise field serializer**
 
 [![Donate](https://img.shields.io/github/sponsors/llybin?style=flat-square)](https://github.com/sponsors/llybin)
 [![CI](https://github.com/llybin/drf-recaptcha/workflows/tests/badge.svg)](https://github.com/llybin/drf-recaptcha/actions)
@@ -41,7 +41,11 @@ DRF_RECAPTCHA_SECRET_KEY = "YOUR SECRET KEY"
 
 ```python
 from rest_framework.serializers import Serializer, ModelSerializer
-from drf_recaptcha.fields import ReCaptchaV2Field, ReCaptchaV3Field
+from drf_recaptcha.fields import (
+    ReCaptchaEnterpriseField,
+    ReCaptchaV2Field,
+    ReCaptchaV3Field,
+)
 from feedback.models import Feedback
 
 
@@ -72,9 +76,11 @@ class V3WithScoreSerializer(Serializer):
 
 class GetReCaptchaScore(APIView):
     def post(self, request):
-        serializer = V3WithScoreSerializer(data=request.data, context={"request": request})
+        serializer = V3WithScoreSerializer(
+            data=request.data, context={"request": request}
+        )
         serializer.is_valid()
-        score = serializer.fields['recaptcha'].score
+        score = serializer.fields["recaptcha"].score
         ...
 
 
@@ -124,6 +130,17 @@ class DynamicContextSecretKey(GenericAPIView):
 class MobileSerializer(Serializer):
     recaptcha = ReCaptchaV3Field(secret_key="SPECIAL_MOBILE_KEY", action="feedback")
     ...
+
+
+class EnterpriseSerializer(Serializer):
+    recaptcha = ReCaptchaEnterpriseField(action="example")
+    ...
+
+
+class EnterpriseCheckboxSerializer(Serializer):
+    # Checkbox site keys are not bound to an action.
+    recaptcha = ReCaptchaEnterpriseField(required_score=0.6)
+    ...
 ```
 
 ## Settings
@@ -137,6 +154,12 @@ class MobileSerializer(Serializer):
 
 `DRF_RECAPTCHA_DOMAIN` - by default: `www.google.com`. Type: str.
 
+`DRF_RECAPTCHA_ENTERPRISE_PROJECT_ID` - reCAPTCHA Enterprise only, your Google Cloud project id. Type: str.
+
+`DRF_RECAPTCHA_ENTERPRISE_SITE_KEY` - reCAPTCHA Enterprise only, the site key the token is issued for. Type: str.
+
+`DRF_RECAPTCHA_ENTERPRISE_DOMAIN` - by default: `recaptchaenterprise.googleapis.com`. Type: str.
+
 `DRF_RECAPTCHA_PROXY` - by default: `{}`. Type: dict. e.g.
 `{'http': 'http://127.0.0.1:8000', 'https': 'https://127.0.0.1:8000'}`
 
@@ -148,12 +171,33 @@ class MobileSerializer(Serializer):
 2. the argument `secret_key` of field
 3. request.context["recaptcha_secret_key"]
 
-### Silence the check error
+### Missing credentials
 
-If you need to disable the error, you can do so using the django settings.
+Serializers declare their fields at import time, so credentials taken from settings are read when a field validates
+rather than when it is built. A deployment missing one still starts, and a
+[system check](https://docs.djangoproject.com/en/stable/topics/checks/) warns which setting it is:
+
+```
+?: (drf_recaptcha.W001) settings.DRF_RECAPTCHA_SECRET_KEY not set, so reCAPTCHA cannot verify a
+token and every field will reject its submission.
+```
+
+The submission is rejected rather than accepted, because the alternative is taking tokens nobody verified. The error is
+`ValidationError` with the code `captcha_error`, the same as a verification that failed, and the message of
+`captcha_unconfigured`, which does not name the missing setting — that goes to the log at `ERROR` instead.
+
+An unset environment variable usually reaches settings as an empty string, so a blank credential means the same as no
+credential at all.
+
+### Silence the checks
+
+If you need to disable the warnings, you can do so using the django settings.
 
 ```python
-SILENCED_SYSTEM_CHECKS = ['drf_recaptcha.checks.recaptcha_system_check']
+SILENCED_SYSTEM_CHECKS = [
+    "drf_recaptcha.W001",  # missing credentials
+    "drf_recaptcha.recaptcha_test_key_error",  # Google test key in use
+]
 ```
 
 ## reCAPTCHA v3
@@ -170,6 +214,29 @@ If not defined or zero in current item then value from next item.
 2. Value in argument `required_score` of field
 3. Default value in settings `DRF_RECAPTCHA_DEFAULT_V3_SCORE`
 4. Default value `0.5`
+
+## reCAPTCHA Enterprise
+
+`ReCaptchaEnterpriseField` verifies the token by creating an [assessment](https://cloud.google.com/recaptcha/docs/create-assessment-website) with the Google Cloud API, authenticated with an [API key](https://cloud.google.com/docs/authentication/api-keys), so no additional dependency is required.
+
+1. Create a key in the [Google Cloud console](https://console.cloud.google.com/security/recaptcha) or migrate an existing one
+2. Create an API key restricted to the reCAPTCHA Enterprise API
+3. Set in settings
+
+```python
+DRF_RECAPTCHA_SECRET_KEY = "YOUR API KEY"
+DRF_RECAPTCHA_ENTERPRISE_PROJECT_ID = "YOUR GOOGLE CLOUD PROJECT ID"
+DRF_RECAPTCHA_ENTERPRISE_SITE_KEY = "YOUR SITE KEY"
+```
+
+The API key is the credential of the field, so it follows the [priority of secret_key value](#priority-of-secret_key-value). The project id and the site key can be overridden by the arguments `project_id` and `site_key` of the field.
+
+Validation is passed if the token is valid and the score value returned by Google is greater than or equal to required score, with the same [priority of score value](#priority-of-score-value) as reCAPTCHA v3.
+
+The argument `action` is optional, define it for score based site keys to check the action of the token, leave it unset for checkbox site keys because they are not bound to an action.
+
+An assessment needs all three credentials, so defining either Enterprise setting is what tells the system check to report
+a [missing](#missing-credentials) project id or site key as well.
 
 ## Testing
 

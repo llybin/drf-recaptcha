@@ -10,6 +10,12 @@ TEST_V2_SECRET_KEY = "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"  # noqa: S105
 
 DEFAULT_RECAPTCHA_DOMAIN = "www.google.com"
 
+# https://cloud.google.com/recaptcha/docs/create-assessment-website
+#
+# reCAPTCHA Enterprise assessments are created through the Google Cloud API.
+
+DEFAULT_RECAPTCHA_ENTERPRISE_DOMAIN = "recaptchaenterprise.googleapis.com"
+
 # https://developers.google.com/recaptcha/docs/v3
 #
 # reCAPTCHA v3 returns a score:
